@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Plugin>
+  <className>PasswordManager</className>
+  <name>Password Manager</name>
+  <location>default</location>
+  <subLocation></subLocation>
+  <order>1</order>
+  <description>The password manager allows users to safely store and share data with others in the same group. Data is stored AES encryped</description>
+  <version>1</version>
+</Plugin>

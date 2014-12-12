@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<Plugin>
+  <className>ChangeManager</className>
+  <name>Change Manager</name>
+  <location>default</location>
+  <subLocation></subLocation>
+  <description>The change manager plugin allows you to document your changes.</description>
+  <order>default</order>
+  <version>0.1</version>
+</Plugin> 

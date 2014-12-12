@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<Widget>
+  <className>CMDBUpdates</className>
+  <name>Updates</name>
+  <description>Update that people have made</description>
+  <version>1.0</version>
+</Widget>

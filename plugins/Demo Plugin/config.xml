@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Plugin>
+  <className>Demo</className>
+  <name>Demopluginname</name>
+  <location>default</location>
+  <subLocation>default</subLocation>
+  <order>1</order>
+  <description>This is a demo</description>
+  <version>1</version>
+</Plugin>

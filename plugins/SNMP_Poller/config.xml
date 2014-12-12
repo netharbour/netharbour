@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<Plugin>
+  <name>SNMP Poller</name>
+  <className>SNMPPoller</className>
+  <description>This plugin is provides the SNMP poller that collect the SNMP information shown under the Devices menu.   It's is required to for the statistics collection. </description>
+  <order>default</order>
+  <version>0.1</version>
+  <poller>1</poller>
+  <pollerScript>dispatch_snmp_pollers.pl</pollerScript>
+  <pollerInterval>5</pollerInterval>
+</Plugin> 

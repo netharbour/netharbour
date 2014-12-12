@@ -1,0 +1,129 @@
+============================================================================== 
+                             RELEASE NOTES
+============================================================================== 
+See COPYING for the license details
+
+Version: 1.6 
+Date:    Oct 11, 2012
+Author:  Andree Toonk // Andree@Toonk.nl  Andree.Toonk@bc.net (might not be working much longer)
+
+Important Notices:
+*	BCNET and The University of British Columbia (UBC) have released the software as open source. 
+	It is licensed under the GPLv2 license See COPYING file for details
+
+
+New features:
+
+*	Support for performance data in event checks. If performance data is supplied RRD files will be created and shown to the user in the websinterface.
+	Performance data format is expected according to nagios specs:
+	Expected format of $performance_data is multiple label value tuples
+                separated by comma whitespace ", "  example:
+                percent_packet_loss=0, rta=0.80
+                
+                This is the nagios plugin perfomance data format:
+                'label'=value[UOM];[warn];[crit];[min];[max] 
+                For now we don't implement [warn];[crit];[min];[max] , just the data
+                UOM (unit of measurement) is one of:
+                
+                no unit specified - assume a number (int or float) of things (eg, users, processes, load averages)
+                s - seconds (also us, ms)
+                % - percentage
+                B - bytes (also KB, MB, TB)
+                c - a continuous counter (such as bytes transmitted on an interface)
+
+                This will be implemented as all GAUGE RRD datatypes
+                except for c - a continuous counter, this should be COUNTER/DERIVE 
+
+
+*	Support for REST like submit method for event state changes. Sort of similar as passive checks in Nagios only RestFULL. 
+	This allows for traps, instead of just relying on polling. Also ideal for if a certain check can not be done by polling.
+	submit-event.php accepts both POST and GET. 
+
+	For existing checks, it best if you know the check id. Specify check_id, action=submit_event and a check status (noaios status, 0 -4) and a message:
+	http://nms.mgmt.bc.net/cmdb-svn/submit-event.php?check_id=3&message=test123&action=submit_event&status=1
+
+	Alternatively, If you don't know the check_id then specify: hostname and checkname, key1 and optionally key2 as arguments. Example:
+	http://nms.mgmt.bc.net/cmdb-svn/submit-event.php?hostname=cr1.victx1.bc.net&checkname=BGP%20Shaw%20VICTX1&key1=192.0.2.1&message=I am up&action=submit_event&status=0
+
+
+
+Partially implemented:
+
+* 	Split up the notification part for event state changes. This used to be hard coded in classes/Event.php.
+	Right now classes/Event.php calls notify() which in turn can call different plugins. The only available plugin right now is ./notify_by_email.php which sends the email. 
+	The idea is that in the future you can write your own notification scripts and set them per check.
+	So it's easier to change the notification method and/or email layout.
+
+* 	Service template for Virtual routers 
+
+* 	Accounting support for regular RRD (interface) files. So no longer just for Juniper SCU-DCU data. 
+ 	The user interface needs to be updated to reflect these changes.
+
+
+============================================================================== 
+Version: 1.5 
+Date:    June 1, 2011
+Author:  Andree Toonk
+
+Important Notices:
+* 	When adding comments to config/cmdb.conf from now on use #; instead of just #
+	this is to keep it compatible with future versions of the php.ini format
+*	You'll need to add email addresses to the cmdb/cmdb.conf file for notification to work
+	also see "Configurable emails for notifications" below.
+
+
+New Features
+*	IP Address management solutions IPAM
+	This versions ships with an the "IP Manager" plugin. It's an IPAM solution with support 
+	for IPv4, IPv6 as well as VLANs. It's has reporting capabilities. At this point in time
+	it's the worlds most advance opensource IPv4 and IPv6 address manager. This IP manager was developed 
+	by consultant Henry Leung, paid for by a Canarie IPv6 grant.
+
+*	Nested aggregated graphs
+	The aggregated graphs config file 'config/graph.conf' now supports nested aggregated graphs.
+	These go in an array called $nested_aggregrated_graph_traffic. It allows to add a second level 
+	of aggregation. Below an example:
+
+	$nested_aggregrated_graph_traffic = array(
+	  "Total UBC Campus" =>array(
+		"Transit" => array($aggregrated_graph_traffic['Total Campus Transit']),
+		"Oran" => array($aggregrated_graph_traffic['Total Campus Research (Canarie) Traffic']),
+		"Local Peering" => array($aggregrated_graph_traffic['Total Campus Local Peering Traffic']),
+	  ),
+	);
+	
+	This will create a graph with 3 lines/areas Transit, Oran and Local Peering. 
+	Each of these items are an array itself. In the example above it refenced them from the array
+	$aggregrated_graph_traffic
+
+*	Threshold check
+	The SNMP Poller plugin now has support for Threshold checks and notifications.
+	When using the threshold checker, a user will receive alerts if an interface is utilized
+	for more the 90% of its capacity, or if there are more than 10 errors.
+	This feature can be enabled by adding the following line to config/cmdb.conf
+	threshold_check = 1
+	To disbale set it to 0: threshold_check = 0
+	This is a global setting and currently can not be enabled / disabled on a per devices basis
+	The script './plugins/SNMP_Poller/check_threshold.pl' Allows you to set the default thresholds variables.
+	for interface utilization and errors. Email are send to the email_to variable defined in config/cmdb.conf
+
+*	Configurable emails for notifications.
+	config/cmdb.conf now requires the following entries for notification to work correctlty:
+	email_to = "network-notifications@bc.net"
+	email_from = "BCNET CMDB Account <network-notifications@bc.net>"
+	Currently this is used by the event notification class and the threshold plugin.
+	Multiple accounts can be added using a comma as seperator.
+
+* 	IP calculator Dashboard widget
+	An IPv4 and IPv6 calculator implemented as a widget using the class files
+	that come with the IP manager plugin.
+	
+	
+Bug fixes 
+*	Bug fix in RRD.php to solve issues when entriy in rrd file is NaN (not a number).
+	This sometimes leads to incorrect calculations. Where possible calculations are now done using
+	ADDNAN instead of "+" and PERCENTNAN instead of PERCENT
+*	Scrolable modal window. 
+	modal windows are now scrolable. Usefull for when there's a lot of data in a modal window
+*	Search for interfaces now correctly shows layer3 services
+

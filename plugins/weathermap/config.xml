@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<Plugin>
+  <className>WeatherMap</className>
+  <name>Weathermap</name>
+  <location>statistics</location>
+  <subLocation></subLocation>
+  <description>Traffic weathermap</description>
+  <order>default</order>
+  <version>0.0</version>
+</Plugin> 

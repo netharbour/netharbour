@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<Widget>
+  <className>EventWidget</className>
+  <name>Recent Events</name>
+  <description>Recent Event state changes</description>
+  <version>1.0</version>
+</Widget>

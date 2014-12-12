@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<Plugin>
+  <className>HelloWorld</className>
+  <name>Hello My World2!</name>
+  <location>default</location>
+  <subLocation>default</subLocation>
+  <order>default</order>
+  <description>This is my Hellow World</description>
+  <version>1.1.1.1</version>
+</Plugin>

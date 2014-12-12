@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<Widget>
+  <className>IPCalcWidget</className>
+  <name>IP calculator</name>
+  <description>IPv4 and IPv6 calculator</description>
+  <version>1.0</version>
+</Widget>

@@ -1,0 +1,16 @@
+table#newTable td.title{
+        width:15%;
+	vertical-align:top;
+}
+
+table tr.odd, table th{
+        background-color:#F2F4FD;
+}
+
+table td {
+        padding:3px;
+}
+
+table tr td{
+        border:#E8E8E8 thin groove;
+}

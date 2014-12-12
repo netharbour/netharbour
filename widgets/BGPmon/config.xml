@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<Widget>
+  <className>BgpMon</className>
+  <name>Recent BGPmon Alerts</name>
+  <description>Recent BGPmon.net alerts</description>
+  <version>1.0</version>
+</Widget>

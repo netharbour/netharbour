@@ -1,0 +1,764 @@
+@charset "utf-8";
+/* CSS Document */
+
+@font-face
+{	
+src: url( "hel.tff" );
+font-family: "hel";
+}
+
+body {
+	font: 10px Verdana, Geneva, sans-serif;
+}
+
+a {
+	border:none;
+	text-decoration:none;
+}
+
+img {
+	border:none;
+}
+
+#error {
+	background:url(icons/Warning.png) left center no-repeat #F00;
+	padding:5px;
+	padding-left:30px;
+	border-top:thin solid #C0F2A8;
+	border-bottom:thin solid #C0F2A8;
+	color:#FFF;
+	font-size:10pt;
+}
+
+#success {
+	background: url(icons/Success.png) left center no-repeat #DDF9D0;
+	padding:5px;
+	padding-left:30px;
+	border-top:thin solid #C0F2A8;
+	border-bottom:thin solid #C0F2A8;
+	color:#060;
+	font-size:10pt;
+}
+
+#warning {
+	background: url(icons/Warning.png) left center no-repeat #FF6;
+	padding:5px;
+	padding-left:30px;
+	border-top:thin solid #C0F2A8;
+	border-bottom:thin solid #C0F2A8;
+	color:#060;
+	font-size:10pt;
+}
+
+#devicePart {
+	margin:0 0 0 0;
+	padding:0 0 0 0;
+}
+
+/********************************************************MODAL MESSAGE*********************/
+
+.modalDialog_transparentDivs{	
+	filter:alpha(opacity=40);	/* Transparency */
+	opacity:0.6;	/* Transparency */
+	background-color:#000;
+	z-index:1;
+	position:absolute; /* Always needed	*/
+}
+.modalDialog_contentDiv{
+	border:1px solid #999;	
+	padding-left:10px;
+	z-index:100;/* Always needed	*/
+	position:absolute;	/* Always needed	*/
+	background: url(images/form.gif) repeat-x;	/* White background color for the message */
+}
+
+.modalDialog_contentDiv h1{
+	border-bottom:1px solid #999;
+	color:#666;
+}
+
+.modalDialog_contentDiv table{
+	padding-bottom:10px;
+	width:90%;
+}
+
+.modalDialog_contentDiv input[type='text'], .modalDialog_contentDiv textArea{
+	width:100%;
+}
+
+.modalDialog_contentDiv_shadow{
+	z-index:90;/* Always needed	- to make it appear below the message */
+	position:absolute;	/* Always needed	*/
+	background-color:#555;
+	filter:alpha(opacity=30);	/* Transparency */
+	opacity:0.3;	/* Transparency */	
+}
+
+/*********************************JQuery Modal***************************************/
+#mask {
+  position:absolute;
+  left:0;
+  top:0;
+  z-index:9000;
+  background-color:#000;
+  display:none;
+  opacity: .8;
+  filter:alpha(opacity=50);
+}
+  
+#modalBox .window {
+  position:fixed;
+  left:0;
+  top:0;
+  width:100%;
+  height:auto;
+  display:none;
+  z-index:9999;
+  padding:20px;
+  background-color:#FFFFFF;
+  border:#39F thick solid;
+  max-height:80%;
+}
+
+#modalBox #dialog, #modalBox #newDialog {
+  min-width:40%; 
+  height:auto;
+  padding:10px;
+}
+
+#modalBox #dialog img, #modalBox #newDialog img {
+  min-width:90%; 
+  height:90%;
+  padding:10px;
+}
+
+/*********************************Page Nav******************************************/
+
+#page_navigation a{
+	padding:3px;
+	border:1px solid gray;
+	margin:2px;
+	color:black;
+	text-decoration:none
+}
+.active_page{
+	background:darkblue;
+	color:white !important;
+}
+
+#navigationBar{
+	text-align:right; 
+	padding-bottom:5px;
+	padding-top:5px;
+	float:right;
+	width:30%;
+}
+
+/*********************************JQuery tooltip**************************************/
+
+#screenshot{
+	position:absolute;
+	border:1px solid #ccc;
+	background:#333;
+	padding:10px;
+	display:none;
+	color:#fff;
+}
+
+#tooltip{
+	position:absolute;
+	border:1px solid #333;
+	background:#333333;
+	padding:2px 5px;
+	color:#FFFFFF;
+	display:none;
+	z-index:9999999;
+	max-width:30%;
+	width:auto;
+}
+
+.close{
+	float:right;
+}
+
+/*****************************************************ICONS START**********************************************************/
+#controlBar font{
+	display: block;
+	margin: 0;
+	padding:5px;
+	height: auto;	
+	padding-left:30px;
+}
+
+#controlBar font.topMenu{
+	font-weight:600;
+	color:#FFF;
+}
+
+#controlBar font.subTopMenu{
+	font-weight:600;
+	color:#FFF;
+	padding-top:0;
+}
+
+#controlBar h2.controlTools{
+	padding-left:30px;	
+}
+
+[icon^="add"]{
+	background:transparent url(icons/Add.png) no-repeat center left;	
+}
+
+[icon^="edit"]{
+	background:transparent url(icons/Modify.png) no-repeat center left;	
+}
+
+[icon^="search"]{
+	padding-left:30px;
+	background:transparent url(icons/Search.png) no-repeat center left;
+	cursor:pointer;
+}
+
+[icon^="stat"]{
+	background:transparent url(icons/Bar%20Chart.png) no-repeat center left;
+}
+
+[icon^="line"]{
+	background:transparent url(icons/Line%20Chart.png) no-repeat center left;
+}
+
+[icon^="contact"]{
+	background:transparent url(icons/Profile.png) no-repeat center left;
+}
+
+[icon^="client"]{
+	background:transparent url(icons/Client.png) no-repeat center left;
+}
+
+[icon^="person"]{
+	background:transparent url(icons/Person.png) no-repeat center left;
+}
+
+[icon^="people"]{
+	background:transparent url(icons/People.png) no-repeat center left;
+}
+
+[icon^="device"]{
+	background:transparent url(icons/Device.png) no-repeat center left;
+}
+[icon^="events"]{
+	background:transparent url(icons/Events.png) no-repeat center left;
+}
+
+[icon^="location"]{
+	background:transparent url(icons/location.png) no-repeat center left;
+}
+
+[icon^="industry"]{
+	background:transparent url(icons/Industry.png) no-repeat center left;
+}
+
+[icon^="room"]{
+	background:transparent url(icons/Room.png) no-repeat center left;
+}
+
+[icon^="service"]{
+	background:transparent url(icons/Service.png) no-repeat center left;
+}
+
+[icon^="home"]{
+	background:transparent url(icons/Home.png) no-repeat center left;
+}
+
+[icon^="plugin"]{
+	background:transparent url(icons/Plugin.png) no-repeat center left;
+}
+
+[icon^="tool"]{
+	background:transparent url(icons/Tools.png) no-repeat top left;
+}
+
+[icon^="filter"]{
+	background:transparent url(icons/Filter.png) no-repeat top left;
+}
+
+[icon^="delete"]{
+	background:transparent url(icons/Delete.png) no-repeat top left;
+}
+
+[icon^="report"]{
+	background:transparent url(icons/Report.png) no-repeat top left;
+}
+
+[icon^="graph"]{
+	border:none;
+	background:transparent url(icons/graph.png) no-repeat top left;
+	width:24px;
+	height:24px;
+	cursor:pointer;
+}
+
+[icon^="graphPrev"]{
+	border:none;
+	background:transparent url(icons/graph.png) no-repeat top left;
+	width:24px;
+	height:24px;
+	cursor:pointer;
+}
+
+[icon^="list"]{
+	border:none;
+	background:transparent url(icons/checklist.png) no-repeat top left;
+	width:24px;
+	height:24px;
+	cursor:pointer;
+}
+
+.ajaxBut{
+	background:transparent url(icons/buttonblue.png) no-repeat left;
+	border: none;
+	padding-left: 25px;
+	font-size:8pt;
+	color:#666;
+	height:24px;
+	margin-bottom:5px;
+}
+
+.ajaxBut:hover, .ajaxBut:focus {
+	background-image:url(icons/buttongreen.png) !important;
+	border: none;
+	cursor:pointer;
+}
+/*****************************************************INPUT START**********************************************************/
+input[type="submit"]:hover, input[type="submit"]:focus,
+input[type="reset"]:hover, input[type="reset"]:focus,
+
+a.button:hover, a.button:focus {
+	background-color:#ff6600;
+	color: white;
+	border: 1px solid #404040;
+}
+input
+{
+	background-color: #f0f0f0;
+	color: #404040;
+	border: 1px solid #404040;
+}
+
+table#dataTable td.title, table#sortDataTable td.title{
+	width:20%;
+}
+
+table#newTable td.title{
+	width:20%;
+}
+
+table tr.odd, table th{
+	border:none;	
+	background-color:#F2F4FD;
+}
+
+table tr.odd td{
+	border:none;
+}
+
+table tr.odd {
+	color:#666;	
+}
+
+table tr:hover
+{
+    background-color:#FF9;
+	cursor:default;
+}
+
+table tr.form:hover, table tr.normal:hover
+{
+    background:none;
+	cursor:auto;
+}
+
+table td {
+	padding:5px;
+}
+
+table tr.form{
+	padding:5px;
+}
+
+table tr.form td{
+	border:#E8E8E8 thin groove;
+}
+/****************************************SORTING**************************************/
+
+thead th
+{
+	border:none;
+	text-decoration:none;
+	cursor:pointer;
+}
+
+thead th a
+{
+	text-decoration:none;
+	color:#FFF;
+}
+
+tbody td {
+	border:none;
+	color:#666;
+}
+
+tbody tr.odd {
+	border:none;
+	color:#666;
+}
+
+tbody tr.even {
+	border:none;
+	color:#666;
+}
+
+/************************************************SORTING END********************************************************/
+
+input[type="text"], input[type="password"], select, textArea {
+    border: 1px solid #666;
+	background-color:#CCC;
+    color: #404040;
+	overflow:auto;
+}
+
+input[type="text"]
+{
+	max-height:17px;
+}
+
+#newTable input[type="text"], #newTable input[type="password"], #newTable textArea, 
+#dataTable input[type="text"], #dataTable input[type="password"], #dataTable textArea{
+	width:100%;
+}
+input[type="text"]#searchText {
+	width:200px;
+}
+
+input[type="text"]:focus, input[type="password"]:focus, textArea:focus {
+    background-color: white;
+    color: black;
+}
+input[type="text"]:hover, input[type="text"]:focus,
+input[type="password"]:hover, input[type="password"]:focus, 
+textArea:hover, textArea:focus {
+    border: 1px solid #36F;
+}
+
+/******************************************************INPUT END******************************************************/
+
+#container {
+	width:auto;
+	height:auto;
+	margin: auto 0 auto 0;	
+}
+
+/****************************************************Banner***********************************************/
+#banner {
+	width:100%;
+	min-width:1024px;
+	height:60px;
+	background:transparent url(images/global.logo.jpg) no-repeat center left;
+	background-size: 10% auto;
+}
+
+#banner ul#status{
+	color:#999;
+	text-align:right;
+	list-style:none;
+}
+
+#banner ul#status li{
+	float:right;
+	margin-left:20px;
+	margin-top:55px;
+}
+
+#banner ul#status li a{
+	padding: 5px;
+	background:#003366;
+	color:#FFFFFF;
+}
+
+#banner ul#status li a:hover{
+	background:#000066;
+}
+
+/*********************************************Banner End******************************************************/
+
+/*********************************************THE menu********************************************************/
+#menu {		
+	clear:both;
+	width:auto;
+	min-width:1024px;
+	height:35px;
+	border-bottom:thin solid #CCC;
+	border-top:thin solid #CCC;
+	margin-top:10px;
+	background:url(images/bar.gif) repeat;
+}
+
+#menu #searchBox {
+	float:right;
+	margin-top:7px;
+	margin-right: 10px;
+}
+
+#menu #controlBar li {
+	height:28px;
+	padding-top:7px;
+	padding-left:10px;
+}
+
+#menu #controlBar li:hover {
+	background:url(images/barHover.gif) repeat;
+}
+
+#menu #controlBar #active {
+	background:url(images/barHover.gif) repeat;
+}
+
+#menu #controlBar #activeSub {
+	background:#6eabb1;
+}
+
+#menu #controlBar ul ul li:hover {
+	background:#6eabb1;	
+}
+
+#menu #controlBar ul ul {
+	left:0;
+	margin-top:4px;
+	border:none;
+}
+
+#menu #controlBar ul ul li{
+	padding:5px;
+}
+
+#menu #searchBox input#searchButton{
+	background-color:#FFF;
+}
+
+#menu #searchBox input#searchButton:hover{
+	background-color:#666;
+	color: #FFF;
+}
+/********************************************menu END*********************************************************/
+
+#main {
+	clear:right;
+	height: auto;
+	margin-left: 10px;
+	margin-right: 10px;	
+}
+
+#main h1#mainTitle {
+	font-size:15pt;
+	border-bottom: thin #699 dashed;
+	padding-bottom: 5px;
+	font-weight:100;
+}
+
+#main #function {	
+	
+}
+
+/*************************************info box************************************************/
+#main .infoBox {
+	width: 30%;
+	height:auto;
+	margin-right: 20px;
+	margin-bottom: 20px;
+	padding-bottom: 50px;
+	float:left;
+}
+
+#main .portlet {
+	border:#CCC solid thin;
+	margin-bottom:10px;
+}
+
+.ui-sortable-placeholder { border: 1px dotted black; visibility: visible !important; height: 50px !important; }
+.ui-sortable-placeholder * { visibility: hidden; }
+	
+#main .graph {
+	width: 100px;
+	height: 30px;
+	float:left;
+}
+
+#main .graph img {
+	width: 90%;
+	height: 90%;
+	border:#999999 solid thin;
+}
+
+#main .infoBox #title {
+	border-bottom:#CCC solid thin;
+	padding:5px 5px 5px 5px;
+	background-color:#036;
+	color:#FFF;
+	margin: 0 0 0 0;
+}
+
+#main .infoBox .minimize {
+	float:right;
+	cursor:pointer;
+	background:url(icons/Back.png) no-repeat right;
+	width:50px;
+	height:20px;
+}
+
+#main .infoBox .maximize {
+	float:right;
+	cursor:pointer;
+	background:url(icons/Next.png) no-repeat right;
+	width:50px;
+	height:20px;
+}
+
+
+#main .infoBox .information {
+	padding: 10px;
+	margin: 0 0 0 0;
+	color:#666;
+	background-color:#FFF;
+}
+
+/***************************************************data table***************************************/
+#main #controlBar {
+	text-align:left;
+	color:#CCC;
+}
+
+#main #controlBar ul {
+	float:left;
+	width:125px;
+}
+
+#main #controlBar input.add {
+	background-color:#CED5F0;
+	border:thin groove #999;
+}
+
+#main table#dataTable, #main table#newTable {
+	clear:left;
+}
+
+#main table#dataTable, #main table#newTable, #main table#sortDataTable {
+	border:none;
+	margin:0 0 10px 0;
+	float: left;
+	margin-right: 5px;
+}
+
+#main table#dataTable th, #main table#newTable th, #main table#sortDataTable th {
+	padding:5px 0px 5px 5px;
+	background-color:#036;
+	color:#FFF;
+}
+
+#main #sidebar {
+	width:200px;
+	height:auto;
+	float:left;
+}
+
+#footer {
+	clear:both;
+	margin-top:10px;
+	padding:10px;
+	border-top:solid #CCC thin;
+	color:#666;
+}
+
+
+/*********************************Drop down Menu 2***********************************************************/
+#controlBar ul {
+	list-style: none;
+	margin: 0 0 10px 0;
+	padding: 0;
+	width: 10em;
+	float: left;
+}
+
+#controlBar h2, #controlBar li.menuItem{
+	font: 10px Verdana, Geneva, sans-serif;
+	display: block;
+	margin: 0;
+	padding: 5px;
+	height: auto;
+	padding-left:2px;
+}
+
+
+#controlBar li.menuItem {
+	color: #000;
+	background-color:#FFF;
+	border-left:#CCC thin solid;
+	border-right:#CCC thin solid;
+}
+
+#menu #controlBar li.topMenuItem {
+	color: #000;
+	background-color:#88c7cd;
+	height:auto;
+}
+
+#controlBar a {
+	color: #000;
+	text-decoration: none;
+}
+
+#main #controlBar li:hover, #main #controlBar a:hover{
+	color:#FFF;
+	background-color:#CCC;
+	cursor:pointer;
+}
+
+#controlBar li {position: relative;}
+
+#controlBar ul ul ul {
+	position: absolute;
+	top: 0;
+	left: 100%;
+}
+
+#controlBar ul ul {
+	width:auto;
+	position: absolute;
+	z-index: 500;
+	border-bottom:thin #CCC solid;
+}
+
+div#controlBar ul ul,
+div#controlBar ul li:hover ul ul,
+div#controlBar ul ul li:hover ul ul
+{
+	display: none;
+}
+
+
+div#controlBar ul li:hover ul,
+div#controlBar ul ul li:hover ul,
+div#controlBar ul ul ul li:hover ul
+{
+	display: block;
+	background-color:#FFF;
+}
+
+#ldap_info {
+	width: 1004px;
+	padding: 10px;
+	background-color: #069;
+	color: #FFF;
+	margin-bottom: 10px;
+	margin-top: 5px;
+}

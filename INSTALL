@@ -1,0 +1,321 @@
+#----------------- Mysql -----------------------------------
+
+The first task is to create a database, database user and create 
+the required tables.
+
+* Connect to you mysql server, I connect with user root
+ mysql -u root -p 
+
+* Create new database , in this case I call it netharbour
+CREATE DATABASE netharbour;
+
+* Create mysql user for this database and grant access to the new database
+CREATE USER 'netharbour_user'@'localhost' IDENTIFIED BY 'pass123';
+grant ALL on netharbour.* to 'netharbour_user'@'localhost';
+
+* Login with the new mysql user
+mysql -u netharbour_user -ppass123 
+
+* Change database to netharbour 
+mysql> use netharbour
+Database changed
+
+* Load database tables and base information into mysql
+The file we will load is called netharbour.sql and has all the table
+structures and required data such as for example the admin user.
+The admin user password is also admin.
+
+mysql> source netharbour.sql
+
+* Verify with show tables if you see all tables:
+
+mysql> show tables;
++---------------------------------+
+| Tables_in_netharbour            |
++---------------------------------+
+| AAA_groups                      |
+| AAA_users                       |
+| AAA_users_groups                |
+| Dashboard_users                 |
+| Dashboard_widgets               |
+| Device_types                    |
+| Devices                         |
+| L2_service_details              |
+| L3_service_details              |
+| Locations                       |
+| Plugin_checks                   |
+| Plugins                         |
+| Plugins_plugin                  |
+| Service_types                   |
+| Services                        |
+| Services_Interfaces             |
+| Updates                         |
+| Users                           |
+| accounting_profiles             |
+| accounting_profiles_files       |
+| accounting_reports              |
+| accounting_sources              |
+| contact_group_types             |
+| contact_groups                  |
+| contact_types                   |
+| contacts                        |
+| control_ports                   |
+| events                          |
+| groups_contacts                 |
+| interface_IPaddresses           |
+| interfaces                      |
+| ipmanager_class                 |
+| ipmanager_netblocks             |
+| ipmanager_tags                  |
+| ipmanager_tags_netblock         |
+| ipmanager_vlans                 |
+| ipmanager_vlans_tags            |
+| plugin_ChangeManager_Changes    |
+| plugin_ChangeManager_Components |
+| plugin_SNMPPoller_devices       |
+| plugin_threshold                |
+| pop_location_types              |
+| pop_locations                   |
+| pop_room_types                  |
+| pop_rooms                       |
+| properties                      |
+| properties_user                 |
+| secret_data                     |
+| secret_data_groups              |
+| secret_data_history             |
+| secret_data_types               |
+| service_checks                  |
+| service_checks_profiles         |
+| service_checks_profiles_checks  |
+| service_checks_reports          |
+| service_checks_template         |
+| user_aes                        |
++---------------------------------+
+57 rows in set (0.00 sec)
+
+
+
+#----------------- Installing PHP Scripts ---------------------------------
+
+* Now all mysql tasks are completed and we can start with the PHP pages.
+
+Before we continue you need to make sure you have the required PHP modules. You
+need the following modules: ldap, mysql and SimpleXML
+You can test if you have these modules with 'php -m' , the output should look
+like this
+
+php -m| egrep -i 'ldap|SimpleXML|mysql'
+ldap
+mysql
+SimpleXML
+
+*Only continue if you have all those 3 modules.*
+If missing install with your package manager of choice, for example:
+apt-get install php5-ldap 
+
+Other packages you will need are:
+apt-get install php5-ldap rrdtool snmp libconfig-simple-perl libnet-snmp-perl
+
+In this example we'll install the files in a directory called netharbour under the htdocs root directory.
+
+cd /var/www	
+(or 'cd /var/www/html/' for Debian based distros)
+tar -xvzf /home/netharbour/netharbour.tar.gz
+
+* Change owner so that some of the scripts can run and write data
++in this case the scripts (see later on) will run as user netharbour.
+
+chown -R netharbour netharbour/
+chmod -R a+rx netharbour/
+
+* Edit config files
+
+vi config/cmdb.conf (in the directory you unpacked the code, say /var/www/netharbour/)
+change the database information, for example:
+db_name = netharbour
+db_host = localhost
+db_port = 3306
+db_user = netharbour_user
+db_pass = pass123
+
+Most of the php code uses short_open_tag, so you'll need to enable that in your php.ini. On most ubuntu machines that can be changed in:
+/etc/php5/apache2/php.ini 
+make sure short_open_tag is set to On:
+short_open_tag = On
+(note that in most php.ini files it's defined twice, make sure to update the last occurence as well).
+After that restart apache: service apache2 reload
+
+
+* Now point your browser to the correct url:
+
+http://1.2.3.4/netharbour
+
+or better yet use SSL:
+
+https://1.2.3.4/netharbour
+
+If you don't see the login screen, but instead just text then you probably don't have php short_open_tag enabled.
+Most of the php code uses that, so you'll need to enable that in your php.ini. On most ubuntu machines that can be changed in:
+/etc/php5/apache2/php.ini 
+make sure short_open_tag is set to On:
+short_open_tag = On
+After that restart apache: service apache2 reload
+
+
+#----------------- Web Configuration ---------------------------------
+
+* Login as admin and change admin password
+The default admin password is admin.
+Once you're logged in, click on Administrator (the usernames fullname)
+and click on 'change password' the change the default password.
+
+* Configure paths
+Now it's time to do some basic configuration. Click on 'configurations'. (top right)
+There are several tabs, click on paths to add the correct paths to some of the required executables. 
+You can use the 'Auto Discover paths' feature to let php find the required paths.
+If it can't find the required programs it will give a warning.
+if you use debian or ubuntu you can install the requires tools with:
+apt-get install rrdtool snmp
+
+* Please note that RRDTOOL 1.4 or higher is required!!!! 
+  This is because we use PERCENTNAN which was introduced in RRDTOOL 1.4
+  If your bit per seconds graphs don't work, but other graphs do work then please upgrade rrdtool!
+
+* Change rrd directory
+The rrd-dir is the directory where the rrd files are kept.
+Make sure you change the default (/tmp/rrd-files/) to something else
+I recommend to use $HTDOCS/netharbour/rrd-dir as the RRD Directory
+in my case that would be:
+/var/www/netharbour/rrd-files/
+
+Make sure you see the 'found' keywords for all paths. That indicates the paths are valid.
+
+* Enable plugins
+The CMDB has a plugin framework, now it's time to enable at least one plugin, the 'SNMP Poller'.
+
+First Click on Refresh plugins (you might need to do this twice inititally).
+Now you should see a number of default plugins.
+
+The SNMP Poller plugin collects statistics from the devices and create the rrd files. Enable the SNMP Poller plugin by using the checkbox.
+
+* Configure SNMP Poller plugin
+Now you'll need to enable the devices you want the poller to poll.
+You can do this by clicking on the configure link for the SNMP Poller in Plugins.
+By default no devices are shown. This is because you'll need to add a device.
+
+* Add device
+Click on devices in the main top menu.
+Select Tools>  Add new device 
+add a device and make sure you also select a device location and device type. You can use the demo location en type to start.
+
+* Configure SNMP Poller plugin
+Now go back to configuration > Plugins and configure the SNMP Poller plugin.
+
+
+#----------------- Install Plugin Dispatcher--------------------------------
+
+* Install plugin dispatcher
+All plugins are called from the plugin dispatcher.
+This dispatcher is a perl plugin located in the perl directory of the netharbour software.
+In my case: /var/www/netharbour/perl/plugin_dispatcher.pl
+
+The script relies on the following perl modules:
+DBI
+Config::Simple
+DBD::mysql
+
+If required, you can install those with (as root), however most systems have this installed already.
+cpan -i DBI Config::Simple DBD::mysql 
+
+Now do a manual test to see if it works:
+cd /var/www/netharbour/; ./perl/plugin_dispatcher.pl
+
+You have to also make sure that the user that executes this script has the permissions to write to the RRD directory. 
+The apache server has to have permission to read those files.
+
+Note that the script needs to start from the netharbour root directory, hence the cd first.
+
+If that works than add this to the crontab, remember to change cd path!
+0,5,10,15,20,25,30,35,40,45,50,55 * * * * cd /var/www/netharbour/; ./perl/plugin_dispatcher.pl
+
+
+#----------------- Enable Service check Dispatcher ---------------------------
+
+The Event check dispatcher should run once a minutes.
+It will only dispatch jobs that actually need to be ran at that time.
+This can be configured per check in the web interface.
+
+First try to run the dispatcher manually,  from the netharbour root
+./perl/event_check_dispatcher.pl
+
+If that works than add this to the crontab, remember to change cd path!
+
+* * * * * cd  /var/www/netharbour/;  ./perl/event_check_dispatcher.pl
+
+This script will call ./monpol.php for each check,  you can run that to test as well. Each fork contains a monpol.php process
+Please note that you can change the number of maximum device threads (forks) (how many devices do you want to poll at the same time),
+ as well as the total number of forks per devices. This can be changes in the /perl/event_check_dispatcher.pl file
+
+These are the defaults:
+my $max_process = 10; # How many devices at the same time
+my $max_process_per_device = 3; # how many threads per device
+
+
+
+#----------------- Widgets--------------------------------
+* Enable widgets
+Widgets are plugins for on the dashboard. Users can enable or disable their own plugins.
+The administrator has to enable some widgets first. 
+Go to configurations > Dashboard Widgets
+click on Refresh Widgets, enable:
+1) CMDB Status
+2) Updates
+3) Recent BGPmon Alerts (only if you're a bgpmon.net user)
+
+Now that the widgets are enabled, the users can enable them by clicking on their username in the top right corner.
+
+Widgets can be organzized by dragging them around.
+
+
+#----------------- LDAP--------------------------------
+
+* LDAP Configuration
+netharbour has support for LDAP authentication.
+Do this only IF you wish to use ldap.
+ This can be configured under Configuration > LDAP
+It's important that all fields are configured correctly.
+
+It's possible to map LDAP groups to local groups. For example if you want to map all ldap users that are a member of ldap group 'engineering' to the local group 'admin' then you would add 'engineering' as 'LDAP Group' for the local group (Configuration > Group management) admin.
+
+
+#------ Aggregated Graphs -------------------------
+In the statistics menu there's a section called Aggregated Devices 
+This is where you can view aggregated graphs, i.e. multiple graphs stacked in
+in one graph. This is useful for if you want to see multiple graphs in one
+overview, for example all your transit providers in one graph.
+
+To make use of this feature you'll need to edit the configuration file called
+graph.conf in the config directory.
+Below an example of how to add two stacked graphs.
+The syntax is very important as this is actually a PHP hash (hash of hashes).
+
+$aggregrated_graph_traffic = array(
+        "total transit Example "=>array(
+                "ISP1" => "/var/www/netharbour/var/rrd-files/deviceid3_ge-0-2-0.rrd",
+                "ISP2" => "/var/www/netharbour/var/rrd-files/deviceid3_ge-0-3-8.603.rrd",
+                "ISP3" => "/var/www/netharbour/var/rrd-files/deviceid9_ge-0-0-0.rrd"
+        ),
+        "total  client1  "=>array(
+                "client_location1" => "/var/www/netharbour/var/rrd-files/deviceid4_ge-0-2-0.rrd",
+                "client_location2" => "/var/www/netharbour/var/rrd-files/deviceid4_ge-0-3-8.603.rrd",
+                "clinet_location3" => "/var/www/netharbour/var/rrd-files/deviceid8_ge-0-0-0.rrd"
+        ),
+);
+
+The names (ISP1, ISP2) are the names that show up in the RRD graph. These have to be one word, so use underscores to append multiples words.
+The second parameter is the rrd location.
+the name of the rrd file starts with the path to the rrd-files, then device $ID. You can see the the device id
+by clicking on the device menu and see the url for ID= 
+followed by the interface name. Note that the 'special' characters such as the / are replaced by -
+if you're not sure what the exact name is, just do an 'ls' in the rrd-files directory.
+
