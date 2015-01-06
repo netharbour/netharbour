@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<Plugin>
+  <className>FirewallCounters</className>
+  <name>Firewall Counters</name>
+  <location>Statistics</location>
+  <subLocation></subLocation>
+  <description>Firewall Counter Charts</description>
+  <order>default</order>
+  <version>0.1</version>
+  <poller>1</poller>
+  <pollerScript>dispatch_fwcounters.pl</pollerScript>
+  <pollerInterval>5</pollerInterval>
+</Plugin>
