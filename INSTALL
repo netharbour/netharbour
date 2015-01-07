@@ -114,7 +114,7 @@ If missing install with your package manager of choice, for example:
 apt-get install php5-ldap 
 
 Other packages you will need are:
-apt-get install php5-ldap rrdtool snmp libconfig-simple-perl libnet-snmp-perl
+apt-get install php5-ldap rrdtool snmp libconfig-simple-perl libnet-snmp-perl snmp-mibs-downloader
 
 In this example we'll install the files in a directory called netharbour under the htdocs root directory.
 
