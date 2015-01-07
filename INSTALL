@@ -114,7 +114,7 @@ If missing install with your package manager of choice, for example:
 apt-get install php5-ldap 
 
 Other packages you will need are:
-apt-get install php5-ldap rrdtool snmp libconfig-simple-perl libnet-snmp-perl snmp-mibs-downloader
+apt-get install php5-ldap rrdtool snmp libconfig-simple-perl libnet-snmp-perl 
 
 In this example we'll install the files in a directory called netharbour under the htdocs root directory.
 
@@ -161,6 +161,25 @@ make sure short_open_tag is set to On:
 short_open_tag = On
 After that restart apache: service apache2 reload
 
+
+#----------------- SNMP Configuration --------------------------------
+Since MIB's are not distributed with SNMP, we need to install the MIB Downloader, download the MIB's, and configure SNMP to load them
+
+sudo apt-get install snmp-mibs-downloader
+
+Once downloaded, run the mibs downloader:
+
+sudo download-mibs
+
+Now we need to edit the /etc/snmp/snmp.conf and change the following line:
+
+mibs :
+
+to 
+
+#mibs: 
+
+Unless otherwise modified, the snmp.conf file should be entirely commented out in a stock ubuntu install
 
 #----------------- Web Configuration ---------------------------------
 
