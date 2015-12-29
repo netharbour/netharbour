@@ -34,13 +34,14 @@ Dependencies
 * snmp
 
 
-Docker Usage
+## Docker Usage
 ------------
-`docker-compose build`
-`docker-compose up -d`
+* `cd netharbour`
+* `docker-compose build`
+* `docker-compose up -d`
 
-Getting container IP address:
-`docker inspect --format '{{ .NetworkSettings.IPAddress }}' netharbour_web_1`
+### Getting container IP address:
+* `docker inspect --format '{{ .NetworkSettings.IPAddress }}' netharbour_web_1`
 
 visit http://(docker_ip)/netharbour user: admin / pass: admin
 
