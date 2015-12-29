@@ -30,7 +30,7 @@ RUN cpan -i DBI Config::Simple DBD::mysql
 
 RUN echo "#Empty file to enable MIBs" > /etc/snmp/snmp.conf
 
-ADD docker_cmdb/000-default.conf /etc/apache2/sites-enabled/000-default.conf
+ADD docker_cmdb/apache.conf /etc/apache2/sites-enabled/000-default.conf
 ADD docker_cmdb/php.ini /etc/php5/apache2/php.ini
 ADD webdir /var/www/netharbour
 ADD docker_cmdb/cmdb.conf /var/www/netharbour/config/cmdb.conf
