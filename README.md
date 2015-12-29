@@ -32,3 +32,15 @@ Dependencies
 * Apache
 * rrdtool
 * snmp
+
+
+Docker Usage
+------------
+docker-compose build
+docker-compose up -d
+
+Getting container IP address:
+docker inspect --format '{{ .NetworkSettings.IPAddress }}' netharbour_web_1
+
+visit http://(docker_ip)/netharbour user: admin / pass: admin
+
