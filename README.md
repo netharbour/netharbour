@@ -43,5 +43,6 @@ Dependencies
 ### Getting container IP address:
 * `docker inspect --format '{{ .NetworkSettings.IPAddress }}' netharbour_web_1`
 
-visit http://(docker_ip)/netharbour user: admin / pass: admin
+### Viewing Web Interface
+* Visit http://(docker_ip)/netharbour user: admin / pass: admin
 
