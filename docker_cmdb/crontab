@@ -1,0 +1,2 @@
+*/5 * * * * su -s /bin/sh -c "cd /var/www/netharbour/; ./perl/plugin_dispatcher.pl" www-data
+* * * * * su -s /bin/sh -c "cd  /var/www/netharbour/;  ./perl/event_check_dispatcher.pl" www-data
