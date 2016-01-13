@@ -669,7 +669,8 @@ CREATE TABLE `events` (
   KEY `host_name` (`host_name`),
   KEY `check_name` (`check_name`),
   KEY `key1` (`key1`),
-  KEY `key2` (`key2`)
+  KEY `key2` (`key2`),
+  KEY `active` (`active`)
 ) ENGINE=InnoDB AUTO_INCREMENT=17665 DEFAULT CHARSET=latin1 COMMENT='events table';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
