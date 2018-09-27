@@ -323,7 +323,7 @@ function updateDevice($devices)
 			$devices->set_device_fqdn($tempDeviceInfo[device_fqdn]);
 			$devices->set_location_id($tempDeviceInfo[location]);
 			$devices->set_device_type($tempDeviceInfo[device_type]);
-			$devices->set_device_oob($tempDeviceInfo[snmp_ro]);
+			$devices->set_snmp_ro($tempDeviceInfo[snmp_ro]);
 			$devices->set_device_oob($tempDeviceInfo[device_oob]);
 			$devices->set_notes($tempDeviceInfo[notes]);
 								
@@ -792,7 +792,7 @@ function displayDevice($devices)
 		if ($_GET['action'] == edit)
 		{
 			$deviceKey = array("name", "device_fqdn", "location", "device_type", 
-				"SNMP Community String.tip.Read only SNMP community used for SNMP data collection", "device_oob", "notes");
+				"snmp_ro", "device_oob", "notes");
 			$fieldType = array("","","drop_down", "drop_down", "","", "text_area");
 			
 			$deviceForm->setFieldType($fieldType);
