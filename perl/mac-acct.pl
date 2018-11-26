@@ -132,8 +132,8 @@ sub create_rrd_archive {
         #special chars replaced by a -, unix doesnt like / in filename
         #64 bits max is 18446744073709551616
         my $cli = " $rrdtool create \'$rrddir/$interface_file_name\' \\
-      DS:INOCTETS:COUNTER:600:0:2.5000000000e+08 \\
-      DS:OUTOCTETS:COUNTER:600:0:2.5000000000e+08 \\
+      DS:INOCTETS:COUNTER:600:0:1.25000000000e+09 \\
+      DS:OUTOCTETS:COUNTER:600:0:1.25000000000e+09 \\
       DS:INUCASTPKTS:COUNTER:600:0:U \\
       DS:OUTUCASTPKTS:COUNTER:600:0:U \\
       RRA:AVERAGE:0.5:1:600 \\
