@@ -30,9 +30,6 @@ $headers = "From: $from \r\n" .
 	"Reply-To: $from \r\n" .
 	"X-Mailer: PHP/" . phpversion();
 
-# Not emailing for now!
-# Feb 4, 2014:wq
-#
-#mail($to, $subject, $message, $headers);
+mail($to, $subject, $message, $headers);
 
 ?>
