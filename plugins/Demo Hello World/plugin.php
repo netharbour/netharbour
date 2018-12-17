@@ -3,6 +3,12 @@ class HelloWorld
 {
 	//default content
 	private $content = "<h1>HELLO WORLD!</h1>";
+
+	// initialization function run only when plugin is enabled
+	function init()
+	{
+		// Run any one-time start-up code (e.g. CREATE TABLE IF NOT EXISTS)
+	}
 	
 	//renders the content
 	function get_content()
