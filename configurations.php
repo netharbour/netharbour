@@ -1190,8 +1190,8 @@ function updatePlugins()
 					$className = $curPlugin->get_class_name();
 					$pluginClass = new $className();
 
-					if (method_exists($pluginClass, "init")) {
-						$pluginClass->init();
+					if (method_exists($pluginClass, "on_enable")) {
+						$pluginClass->on_enable();
 					}
 				}
 				$curPlugin->set_enabled(true);
