@@ -1184,7 +1184,7 @@ function updatePlugins()
 		{
 			if ($id == $eValue)
 			{
-				if (!$previously_enabled) // Run init function of plugin (if exists), if plugin not previously enabled
+				if (!$previously_enabled) // Run on_enable function of plugin (if exists), if plugin not previously enabled
 				{
 					include_once $curPlugin->get_filename();
 					$className = $curPlugin->get_class_name();
