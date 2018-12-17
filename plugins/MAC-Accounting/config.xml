@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Plugin>
+    <name>MAC Accounting</name>
+    <className>MACAccounting</className>
+    <description>Gathers accounting statistics based on MAC addresses for Junos OS routers.</description>
+    <location>statistics</location>
+    <order>default</order>
+    <version>1.0</version>
+    <poller>1</poller>
+    <pollerScript>dispatch_mac_acct.pl</pollerScript>
+    <pollerInterval>5</pollerInterval>
+</Plugin>
