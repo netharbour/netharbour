@@ -173,7 +173,7 @@ class MACAccounting
         $view->tableSet($form, $tableData);
         $view->netharbourTable = $view->tableHTML($form);
 
-        return $view->render('deviceList.php');
+        return $view->render('pluginDisplay.php');
     }
 
     private function renderDeviceAccounting($url, $id)
@@ -209,7 +209,7 @@ class MACAccounting
         $view->tableSet($form, $tableData);
         $view->netharbourTable = $view->tableHTML($form);
 
-        return $view->render('deviceAcct.php');
+        return $view->render('pluginDisplay.php');
     }
 
 
@@ -271,6 +271,6 @@ class MACAccounting
         $view->tableSet($form, $tableData);
         $view->netharbourTable = $view->tableHTML($form);
 
-        return $view->render('deviceAcctDetail.php');
+        return $view->render('pluginDisplay.php');
     }
 }
