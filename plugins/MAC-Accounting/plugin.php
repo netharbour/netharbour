@@ -202,7 +202,7 @@ class MACAccounting
         // add table data and generate device links
         while ($obj = $model->fetchObject($result)) {
             array_push ($tableData, $obj->ip_address, $obj->mac_address, $obj->resolved_ip);
-            $url2 = $url . "&action=show_macaccounting_detail&device_name=" . $device->get_name() . "&ip=$obj->ip_address";
+            $url2 = $url . "&action=show_macaccounting_detail&device_name=" . $device->get_device_fqdn() . "&ip=$obj->ip_address";
             array_push($handler, "handleEvent('$url2')");
         }
 
