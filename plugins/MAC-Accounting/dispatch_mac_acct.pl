@@ -31,11 +31,8 @@ my $cur_dir = get_current_dir();
 my %devices_todo = get_devices_to_check();
 
 #------------------ Start MAC Accounting collection script ----------------------
-
-
-#------------------------------------------------------------------------------
-# Now fork proces for each device,
-# The number of simultaneous processes is limited by $max_proces
+# Now fork process for each device,
+# The number of simultaneous processes is limited by $max_process
 my $counter = 0;
 for my $device_id ( sort {$a <=> $b} (keys %devices_todo) ) {
     my $device_name = $devices_todo{$device_id};
@@ -79,11 +76,13 @@ sub exec_mac_acct {
 
 sub get_devices_to_check {
     my %device_list;
-    my $query = "select plugin_MACAccounting_devices.device_id, Devices.name
+    my $query = "
+        SELECT plugin_MACAccounting_devices.device_id, Devices.name
 		FROM plugin_MACAccounting_devices, Devices
 		WHERE plugin_MACAccounting_devices.enabled = '1'
 		AND plugin_MACAccounting_devices.device_id = Devices.device_id
-		order by plugin_MACAccounting_devices.device_id ";
+		ORDER BY plugin_MACAccounting_devices.device_id
+    ";
 
     my $sth = $dbh->prepare($query);
     $sth->execute() or die "Couldn't execute statement: " . $sth->errstr;

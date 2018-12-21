@@ -29,10 +29,9 @@ class MACAccounting
             (
               `device_id`       int(11) NOT NULL COMMENT 'Points to MACAccounting device table',
               `device_name`     varchar(100) NOT NULL COMMENT 'FQDN of Device',
-              `interface_name`  varchar(50) NOT NULL COMMENT 'interface name, e.g. xe-0/0/1',
-              `interface_descr` varchar(200) NOT NULL COMMENT 'human defined interface description',
               `ip_address`      varchar(40) NOT NULL COMMENT 'ip address',
               `mac_address`     varchar(20) NOT NULL COMMENT 'mac address',
+              `resolved_ip`     varchar(100) NOT NULL COMMENT 'DNS name of harvested ip',
               PRIMARY KEY (`device_id`, `ip_address`, `mac_address`),
               CONSTRAINT `plugin_MACAccounting_info_ibfk_1` FOREIGN KEY (`device_id`) REFERENCES `plugin_MACAccounting_devices` (`device_id`) ON DELETE CASCADE ON UPDATE CASCADE 
             ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='mac and ip details for MAC Accounting'";
@@ -188,9 +187,9 @@ class MACAccounting
         // initialize variables
         $tableData = array();
         $handler   = array();
-        $header    = array("IP Address", "MAC Address");
+        $header    = array("IP Address", "MAC Address", "Resolved IP");
 
-        $form = $view->tableCreate("auto", 2, true, $header, "678px");
+        $form = $view->tableCreate("auto", 3, true, $header, "678px");
 
         $result = $model->selMACAcctIPMAC($id);
         if (!$result) {
@@ -202,7 +201,7 @@ class MACAccounting
 
         // add table data and generate device links
         while ($obj = $model->fetchObject($result)) {
-            array_push ($tableData, $obj->ip_address, $obj->mac_address);
+            array_push ($tableData, $obj->ip_address, $obj->mac_address, $obj->resolved_ip);
             $url2 = $url . "&action=show_macaccounting_detail&device_name=" . $device->get_name() . "&ip=$obj->ip_address";
             array_push($handler, "handleEvent('$url2')");
         }

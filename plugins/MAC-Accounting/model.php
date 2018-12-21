@@ -60,7 +60,7 @@ class Model
     public function selMACAcctIPMAC($id)
     {
         $query = "
-            SELECT plugin_MACAccounting_info.ip_address, plugin_MACAccounting_info.mac_address
+            SELECT plugin_MACAccounting_info.ip_address, plugin_MACAccounting_info.mac_address, plugin_MACAccounting_info.resolved_ip
             FROM plugin_MACAccounting_info
             WHERE plugin_MACAccounting_info.device_id = '$id'";
         $result = mysql_query($query);

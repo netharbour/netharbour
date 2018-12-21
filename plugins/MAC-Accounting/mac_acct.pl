@@ -9,6 +9,7 @@ my $config_file = "config/cmdb.conf";
 use DBI;
 use Config::Simple;
 use Getopt::Std;
+use Socket;
 
 ###################### Get config ###########################
 ## This specifies where CMDB_Config.pm i
@@ -166,7 +167,8 @@ while ( my $mac = each(%allmacs) ) {
 
     # DB update
     my $record_exists = record_exists($device_id, $ip, $mac);
-    store_MACAccounting_info($record_exists, $device_id, $device, $ip, $mac);
+    my $resolved_ip = resolve_ip($ip);
+    store_MACAccounting_info($record_exists, $device_id, $device, $ip, $mac, $resolved_ip);
 }
 
 ############################ Below are all the sub routines #########################
@@ -199,7 +201,10 @@ sub create_rrd_archive {
 sub get_device_info {
     my $dev_id = shift;
     my %info;
-    my $query = "SELECT name, snmp_ro, device_fqdn FROM Devices where device_id = '$dev_id' " ;
+    my $query = "
+        SELECT name, snmp_ro, device_fqdn
+        FROM Devices where device_id = '$dev_id'
+        ";
     my $sth = $dbh->prepare($query);
     $sth->execute() or die "Couldn't execute statement: " . $sth->errstr;
     while (my @data = $sth->fetchrow_array()) {
@@ -217,19 +222,25 @@ sub store_MACAccounting_info {
     my $device_name   = shift;
     my $ip_address    = shift;
     my $mac_address   = shift;
+    my $resolved_ip   = shift;
     my $query = "";
     if ($record_exists) {
-        $query = "UPDATE plugin_MACAccounting_info
-                  SET
-                    device_name = '$device_name',
-                    ip_address = '$ip_address',
-                    mac_address = '$mac_address
-                  WHERE device_id = '$dev_id'
-                    AND ip_address = '$ip_address'
-                    AND mac_address = '$mac_address'";
+        $query = "
+            UPDATE plugin_MACAccounting_info
+            SET
+                device_name = '$device_name',
+                ip_address = '$ip_address',
+                mac_address = '$mac_address',
+                resolved_ip = '$resolved_ip'
+            WHERE device_id = '$dev_id'
+                AND ip_address = '$ip_address'
+                AND mac_address = '$mac_address'
+        ";
     } else {
-        $query = "INSERT INTO plugin_MACAccounting_info ( device_id, device_name, ip_address, mac_address )
-                  VALUES ('$dev_id', '$device_name', '$ip_address', '$mac_address')";
+        $query = "
+            INSERT INTO plugin_MACAccounting_info ( device_id, device_name, ip_address, mac_address, resolved_ip )
+            VALUES ('$dev_id', '$device_name', '$ip_address', '$mac_address', '$resolved_ip')
+        ";
     }
     my $sth = $dbh->prepare($query);
     $sth->execute();
@@ -243,11 +254,13 @@ sub record_exists {
     my $mac_address = shift;
     my $result = 0;
     my $query = "";
-    $query = "SELECT device_id, ip_address, mac_address
-                 FROM plugin_MACAccounting_info
-                 WHERE device_id = '$dev_id'
-                    AND ip_address = '$ip_address'
-                    AND mac_address = '$mac_address'";
+    $query = "
+        SELECT device_id, ip_address, mac_address
+        FROM plugin_MACAccounting_info
+        WHERE device_id = '$dev_id'
+            AND ip_address = '$ip_address'
+            AND mac_address = '$mac_address'
+    ";
     my $sth = $dbh->prepare($query);
     $sth->execute();
     if ($sth->rows == 0) {
@@ -258,4 +271,11 @@ sub record_exists {
     }
     $sth->finish();
     return $result;
+}
+
+# TODO handle IPv6 addresses. Ensure backwards compatibility with perl Socket code/version
+sub resolve_ip {
+    my $ip_address = shift;
+    my $name = gethostbyaddr(inet_aton($ip_address), AF_INET) or die "Can't resolve address";
+    return $name;
 }
