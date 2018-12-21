@@ -43,7 +43,7 @@ class MACAccounting
         return true;
     }
 
-    // renders the content on it's own plugin page
+    // renders the content on it's own plugin page, handles user input
     public function get_content()
     {
         $url = $_SERVER['SCRIPT_NAME']."?tab=".$_GET['tab']."&pluginID=".$_GET['pluginID'];
@@ -141,6 +141,7 @@ class MACAccounting
 
     ##### UI render functions #####
 
+    // renders the devices that are being polled
     private function renderDeviceList($url)
     {
         // instantiate objects
@@ -176,6 +177,7 @@ class MACAccounting
         return $view->render('pluginDisplay.php');
     }
 
+    // renders the MAC and IP details
     private function renderDeviceAccounting($url, $id)
     {
         // instantiate objects
@@ -211,7 +213,6 @@ class MACAccounting
 
         return $view->render('pluginDisplay.php');
     }
-
 
     // renders the graph for specific MAC/IP accounting
     private function renderDetailAccounting($url, $device_name, $ip) {
