@@ -163,6 +163,10 @@ while ( my $mac = each(%allmacs) ) {
     my $update = "N:$jnxMacHCInOctets{$mac}:$jnxMacHCOutOctets{$mac}:$jnxMacHCInFrames{$mac}:$jnxMacHCOutFrames{$mac}";
     $cli = "$rrdupdate \"$rrddir/$rrd_file\" $update";
     system($cli);
+
+    # DB update
+    my $record_exists = record_exists($device_id, $ip, $mac);
+    store_MACAccounting_info($record_exists, $device_id, $device, $ip, $mac);
 }
 
 ############################ Below are all the sub routines #########################
@@ -205,4 +209,53 @@ sub get_device_info {
     }
     $sth->finish();
     return %info;
+}
+
+sub store_MACAccounting_info {
+    my $record_exists = shift;
+    my $dev_id        = shift;
+    my $device_name   = shift;
+    my $ip_address    = shift;
+    my $mac_address   = shift;
+    my $query = "";
+    if ($record_exists) {
+        $query = "UPDATE plugin_MACAccounting_info
+                  SET
+                    device_name = '$device_name',
+                    ip_address = '$ip_address',
+                    mac_address = '$mac_address
+                  WHERE device_id = '$dev_id'
+                    AND ip_address = '$ip_address'
+                    AND mac_address = '$mac_address'";
+    } else {
+        $query = "INSERT INTO plugin_MACAccounting_info ( device_id, device_name, ip_address, mac_address )
+                  VALUES ('$dev_id', '$device_name', '$ip_address', '$mac_address')";
+    }
+    my $sth = $dbh->prepare($query);
+    $sth->execute();
+    $sth->finish();
+}
+
+# returns 0 if entry cannot be found, and a 1 if found
+sub record_exists {
+    my $dev_id = shift;
+    my $ip_address = shift;
+    my $mac_address = shift;
+    my $result = 0;
+    my $query = "";
+    $query = "SELECT device_id, ip_address, mac_address
+                 FROM plugin_MACAccounting_info
+                 WHERE device_id = '$dev_id'
+                    AND ip_address = '$ip_address'
+                    AND mac_address = '$mac_address'";
+    my $sth = $dbh->prepare($query);
+    $sth->execute();
+    if ($sth->rows == 0) {
+        $result = 0;
+    }
+    else {
+        $result = 1;
+    }
+    $sth->finish();
+    return $result;
 }
