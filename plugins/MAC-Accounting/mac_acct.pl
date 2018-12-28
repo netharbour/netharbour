@@ -10,6 +10,8 @@ use DBI;
 use Config::Simple;
 use Getopt::Std;
 use Socket;
+use LWP::Simple;
+use XML::LibXML;
 
 ###################### Get config ###########################
 ## This specifies where CMDB_Config.pm i
@@ -84,6 +86,8 @@ my %jnxMacHCInFrames;
 my %jnxMacHCOutOctets;
 my %jnxMacHCOutFrames;
 my %allmacs;
+my $resolved_ip;
+my $resolved_asn;
 
 #first get ARP table
 $cli = "$snmpwalk -v 2c -Onq -c $community $fqdn .1.3.6.1.2.1.4.22.1.2";
@@ -165,10 +169,28 @@ while ( my $mac = each(%allmacs) ) {
     $cli = "$rrdupdate \"$rrddir/$rrd_file\" $update";
     system($cli);
 
+    # check plugin configuration settings
+    my ($ip_resolve_ref, $whois_lookup_ref) = config_status($device_id);
+
+    print "$ip_resolve_ref->{$device_id}";
+    print "$whois_lookup_ref->{$device_id}";
+
+    if ($ip_resolve_ref->{$device_id} == 1) {
+        $resolved_ip = resolve_ip($ip);
+    } else {
+        $resolved_ip = "";
+    }
+
+    if ($whois_lookup_ref->{$device_id} == 1) {
+        $resolved_asn = asn_whois_lookup(parse_fqdn_for_asn($resolved_ip))
+    } else {
+        $resolved_asn = "";
+    }
+
     # DB update
-    my $record_exists = record_exists($device_id, $ip, $mac);
-    my $resolved_ip = resolve_ip($ip);
-    store_MACAccounting_info($record_exists, $device_id, $device, $ip, $mac, $resolved_ip);
+    my $record_existence = record_exists($device_id, $ip, $mac);
+
+    store_MACAccounting_info($record_existence, $device_id, $device, $ip, $mac, $resolved_ip);
 }
 
 ############################ Below are all the sub routines #########################
@@ -214,6 +236,34 @@ sub get_device_info {
     }
     $sth->finish();
     return %info;
+}
+
+# get the configuration options of the plugin
+sub config_status {
+    my $dev_id = shift;
+    my %dev_ip_resolve;
+    my %dev_whois_lookup;
+
+    my $query = "
+        SELECT
+            plugin_MACAccounting_devices.ip_resolve,
+            plugin_MACAccounting_devices.whois_lookup
+        FROM plugin_MACAccounting_devices
+        WHERE plugin_MACAccounting_devices.enabled = '1'
+        AND plugin_MACAccounting_devices.device_id = '$dev_id'
+        ORDER BY plugin_MACAccounting_devices.device_id
+    ";
+
+    my $sth = $dbh->prepare($query);
+    $sth->execute() or die "Couldn't execute statement: " . $sth->errstr;
+    while (my @data = $sth->fetchrow_array()) {
+        $dev_ip_resolve{$dev_id} = $data[0];
+        $dev_whois_lookup{$dev_id} = $data[1];
+    }
+    $sth->finish();
+
+    # return references to both hashes
+    return (\%dev_ip_resolve, \%dev_whois_lookup);
 }
 
 sub store_MACAccounting_info {
@@ -274,8 +324,42 @@ sub record_exists {
 }
 
 # TODO handle IPv6 addresses. Ensure backwards compatibility with perl Socket code/version
+# TODO fail quickly if lookup fails
+# TODO use newer function than the legacy gethostbyaddr()
 sub resolve_ip {
     my $ip_address = shift;
     my $name = gethostbyaddr(inet_aton($ip_address), AF_INET) or die "Can't resolve address";
     return $name;
+}
+
+# TODO whois lookup based on an ASN number as input
+# TODO fail quickly if HTTP lookup fails
+sub asn_whois_lookup {
+    my $asn = shift;
+    my $xml_string = get("http://whois.arin.net/rest/asn/$asn");
+    print "$xml_string";
+    my $dom = XML::LibXML->load_xml(
+        string => $xml_string,
+    );
+    my $dom_asn   = $dom->documentElement;
+    my ($org_ref) = $dom_asn->getChildrenByTagName('orgRef');
+
+    return($org_ref->getAttribute("name"));
+}
+
+sub parse_fqdn_for_asn {
+    my $fqdn = shift;
+    print "$fqdn\n";
+
+    # grab hostname
+    my $hostname = $fqdn =~ /([^.]+)/;
+
+    print "$hostname\n";
+
+    # grab only numbers
+    my $asn = $hostname =~ s/[^0-9]//g;
+
+    print "$asn\n";
+
+    return $asn;
 }

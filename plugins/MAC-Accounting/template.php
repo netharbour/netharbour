@@ -45,9 +45,9 @@ class Template
         $form->setData($data);
     }
 
-    public function tableCheckBox($id, $checked)
+    public function tableCheckBox($name, $value, $checkStatus)
     {
-        return "<input type=checkbox name=devices[] value='$id' $checked >";
+        return "<input type=checkbox name=$name value='$value' $checkStatus >";
     }
 
     public function tableHTML($form)

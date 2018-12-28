@@ -77,7 +77,9 @@ sub exec_mac_acct {
 sub get_devices_to_check {
     my %device_list;
     my $query = "
-        SELECT plugin_MACAccounting_devices.device_id, Devices.name
+        SELECT
+            plugin_MACAccounting_devices.device_id,
+            Devices.name
 		FROM plugin_MACAccounting_devices, Devices
 		WHERE plugin_MACAccounting_devices.enabled = '1'
 		AND plugin_MACAccounting_devices.device_id = Devices.device_id

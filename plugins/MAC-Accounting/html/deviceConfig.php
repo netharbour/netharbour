@@ -2,7 +2,8 @@
 <form id='configForm' method='post' name='edit_devices'>
     <input type='hidden' name='class' value='<?= $this->value ?>'>
     <input type='hidden' name='id' value='<?= $this->id ?>'>
-    <?= $this->netharbourTable ?>
+    <?= $this->netharbourTable1 ?>
+    <?= $this->netharbourTable2 ?>
     <div style='clear:both;'></div>
     <input type='submit' class='submitBut' name='<?= $this->buttonName ?>' value='<?= $this->buttonValue ?>'/>
 </form>

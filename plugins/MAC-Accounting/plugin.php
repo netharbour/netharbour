@@ -5,41 +5,23 @@ include_once 'plugins/MAC-Accounting/template.php';
 
 class MACAccounting
 {
-
-    // TODO move create table code to model class
+    // TODO test on_enable initialization (specifically how the error handling works)
     // initialization function run only when plugin is first enabled
     public function on_enable()
     {
-        $create_device_table =
-            "CREATE TABLE IF NOT EXISTS `plugin_MACAccounting_devices`
-              (
-                `device_id` int(11)    NOT NULL COMMENT 'Points to devices',
-                `enabled`   tinyint(2) NOT NULL COMMENT 'enabled (1) or not (0)',
-                PRIMARY KEY (`device_id`),
-                CONSTRAINT `plugin_MACAccounting_devices_ibfk_1` FOREIGN KEY (`device_id`) REFERENCES `Devices` (`device_id`) ON DELETE CASCADE ON UPDATE CASCADE
-              ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='MAC Accounting devices being polled'";
-        $create_result = mysql_query($create_device_table);
-        if (!$create_result) {
-            return false;
-        }
-        return true;
+        $model = new Model();
+        $view  = new Template();
 
-        $create_info_table =
-            "CREATE TABLE IF NOT EXISTS `plugin_MACAccounting_info`
-            (
-              `device_id`       int(11) NOT NULL COMMENT 'Points to MACAccounting device table',
-              `device_name`     varchar(100) NOT NULL COMMENT 'FQDN of Device',
-              `ip_address`      varchar(40) NOT NULL COMMENT 'ip address',
-              `mac_address`     varchar(20) NOT NULL COMMENT 'mac address',
-              `resolved_ip`     varchar(100) NOT NULL COMMENT 'DNS name of harvested ip',
-              PRIMARY KEY (`device_id`, `ip_address`, `mac_address`),
-              CONSTRAINT `plugin_MACAccounting_info_ibfk_1` FOREIGN KEY (`device_id`) REFERENCES `plugin_MACAccounting_devices` (`device_id`) ON DELETE CASCADE ON UPDATE CASCADE 
-            ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='mac and ip details for MAC Accounting'";
-        $create_result = mysql_query($create_info_table);
-        if (!$create_result) {
-            return falsee;
+        if (!$model->createMACAcctDevs()) {
+            $view->errorMessage = "Oops, something went wrong with creating plugin_MACAccounting_devices DB table.";
+            return $view->render('error.php');
         }
-        return true;
+
+        if (!$model->createMACAcctInfo()) {
+            $view->errorMessage = "Oops, something went wrong with creating plugin_MACAccounting_info DB table.";
+            return $view->render('error.php');
+        }
+
     }
 
     // renders the content on it's own plugin page, handles user input
@@ -64,16 +46,24 @@ class MACAccounting
         $model = new Model();
 
         // initialize variables
-        $devices   = array();
-        $tableData = array();
-        $header    = array(
+        $devices      = array();
+        $tableData1   = array();
+        $tableData2   = array();
+        $header1      = array(
+            "",
+            "Plugin Setting",
+            "Description",
+            "Notes"
+        );
+        $header2      = array(
             "",
             "Device Name",
             "Device Type",
             "Location"
         );
 
-        $form = $view->tableCreate("auto", 4, true, $header, "auto");
+        $form1 = $view->tableCreate("auto", 4, true, $header1, "auto");
+        $form2 = $view->tableCreate("auto", 4, true, $header2, "auto");
 
         $view->header = "Select the Devices to poll for MAC Accounting";
         $view->value = "MACAccounting";
@@ -86,33 +76,65 @@ class MACAccounting
             return $view->render('error.php');
         };
 
+        // ensure ip_resolve and whois_lookup is checked if enabled. also populate $devices array with enable state
         while ($obj = $model->fetchObject($result)) {
             $devices[$obj->device_id] = $obj->enabled;
+
+            if ($obj->ip_resolve == 1) {
+                $ipResolveChecked = "checked='yes'";
+            } else {
+                $ipResolveChecked = "";
+            }
+
+            if ($obj->whois_lookup == 1) {
+                $whoisLookupChecked = "checked='yes'";
+            } else {
+                $whoisLookupChecked = "";
+            }
         }
+
+        // push table row elements into array for configuration settings
+        array_push($tableData1,
+            $view->tableCheckBox("ip_resolve", 1, $ipResolveChecked)
+        );
+        array_push($tableData1,
+            "Reverse DNS Lookup",
+            "Resolve IP to it's FQDN (only if PTR records exist)",
+            "**Can slow down MAC Accounting polling if PTR records don't exist and the reverse lookup is timing out**"
+        );
+        array_push($tableData1,
+            $view->tableCheckBox("whois_lookup", 1, $whoisLookupChecked)
+        );
+        array_push($tableData1,
+            "ASN Whois Lookup",
+            "Whois lookup based on ASN number in hostname (gathered from the reverse DNS lookup)",
+            "**The only numbers in the hostname have to be the ASN (e.g. asXXXX.sub.domain)**"
+        );
 
         // get all devices, compare with enabled devices for polling. If a match, check the box.
         foreach ($model->getAllDevices() as $id => $name) {
 
             $devObj = $model->deviceObject($id);
-
             if ((array_key_exists($id, $devices)) && ($devices[$id] == 1)) {
-                $checked = "checked='yes'";
+                $deviceChecked = "checked='yes'";
             } else {
-                $checked = "";
+                $deviceChecked = "";
             }
 
-            // push table row elements into array
-            array_push($tableData, $view->tableCheckBox($id, $checked));
-            array_push($tableData, $name);
-            array_push($tableData, $devObj->get_type_name());
-            array_push($tableData, $devObj->get_location_name());
+            // push table row elements into array for devices
+            array_push($tableData2, $view->tableCheckBox("devices[]", $id, $deviceChecked));
+            array_push($tableData2, $name);
+            array_push($tableData2, $devObj->get_type_name());
+            array_push($tableData2, $devObj->get_location_name());
         }
 
-        $view->tableSet($form, $tableData);
+        $view->tableSet($form1, $tableData1);
+        $view->tableSet($form2, $tableData2);
 
-        $view->netharbourTable = $view->tableHTML($form);
-        $view->buttonName      = "plugin_update";
-        $view->buttonValue     = "Update configuration";
+        $view->netharbourTable1 = $view->tableHTML($form1);
+        $view->netharbourTable2 = $view->tableHTML($form2);
+        $view->buttonName       = "plugin_update";
+        $view->buttonValue      = "Update configuration";
 
         return $view->render('deviceConfig.php');
     }
@@ -129,7 +151,19 @@ class MACAccounting
 
         // add all selected devices
         foreach($_POST['devices'] as $key => $id) {
-            $result = $model->insertDevEnabled($id);
+            if ($_POST['ip_resolve'] == 1) {
+                $ip_resolve = 1;
+            } else {
+                $ip_resolve = 0;
+            }
+
+            if ($_POST['whois_lookup'] == 1) {
+                $whois_lookup = 1;
+            } else {
+                $whois_lookup = 0;
+            }
+
+            $result = $model->insertEnabledDev($id, $ip_resolve, $whois_lookup);
             if (!$result) {
                 return false;
             }
@@ -187,9 +221,14 @@ class MACAccounting
         // initialize variables
         $tableData = array();
         $handler   = array();
-        $header    = array("IP Address", "MAC Address", "Resolved IP");
+        $header    = array(
+            "IP Address",
+            "MAC Address",
+            "Reverse DNS Lookup",
+            "ASN lookup"
+        );
 
-        $form = $view->tableCreate("auto", 3, true, $header, "678px");
+        $form = $view->tableCreate("auto", 4, true, $header, "678px");
 
         $result = $model->selMACAcctIPMAC($id);
         if (!$result) {
@@ -201,7 +240,7 @@ class MACAccounting
 
         // add table data and generate device links
         while ($obj = $model->fetchObject($result)) {
-            array_push ($tableData, $obj->ip_address, $obj->mac_address, $obj->resolved_ip);
+            array_push ($tableData, $obj->ip_address, $obj->mac_address, $obj->resolved_ip, $obj->org_name);
             $url2 = $url . "&action=show_macaccounting_detail&device_name=" . $device->get_device_fqdn() . "&ip=$obj->ip_address";
             array_push($handler, "handleEvent('$url2')");
         }

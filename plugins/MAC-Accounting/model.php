@@ -3,6 +3,8 @@
 include_once "classes/Device.php";
 include_once 'classes/Property.php';
 
+// TODO use PHP's new PDO db accessor
+
 class Model
 {
     public function __construct()
@@ -15,10 +17,45 @@ class Model
         return mysql_fetch_object($queryResult);
     }
 
+    public function createMACAcctDevs()
+    {
+        $query = "
+            CREATE TABLE IF NOT EXISTS `plugin_MACAccounting_devices`
+            (
+                `device_id` int(11)    NOT NULL COMMENT 'Points to devices',
+                `enabled`   tinyint(2) NOT NULL COMMENT 'enabled (1) or not (0)',
+                PRIMARY KEY (`device_id`),
+                CONSTRAINT `plugin_MACAccounting_devices_ibfk_1` FOREIGN KEY (`device_id`) REFERENCES `Devices` (`device_id`) ON DELETE CASCADE ON UPDATE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='MAC Accounting devices being polled'
+        ";
+
+        $result = mysql_query($query);
+        return $result;
+    }
+
+    public function createMACAcctInfo()
+    {
+        $query = "
+            CREATE TABLE IF NOT EXISTS `plugin_MACAccounting_info`
+            (
+                `device_id`       int(11) NOT NULL COMMENT 'Points to MACAccounting device table',
+                `device_name`     varchar(100) NOT NULL COMMENT 'FQDN of Device',
+                `ip_address`      varchar(40) NOT NULL COMMENT 'ip address',
+                `mac_address`     varchar(20) NOT NULL COMMENT 'mac address',
+                `resolved_ip`     varchar(100) NOT NULL COMMENT 'DNS name of harvested ip',
+                PRIMARY KEY (`device_id`, `ip_address`, `mac_address`),
+                CONSTRAINT `plugin_MACAccounting_info_ibfk_1` FOREIGN KEY (`device_id`) REFERENCES `plugin_MACAccounting_devices` (`device_id`) ON DELETE CASCADE ON UPDATE CASCADE 
+            ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='mac and ip details for MAC Accounting'
+        ";
+
+        $result = mysql_query($query);
+        return $result;
+    }
+
     public function selMACAcctDevs()
     {
         $query = "
-            SELECT device_id, enabled 
+            SELECT device_id, enabled, ip_resolve, whois_lookup 
             FROM plugin_MACAccounting_devices
         ";
 
@@ -35,11 +72,15 @@ class Model
         return $result;
     }
 
-    public function insertDevEnabled($id)
+    public function insertEnabledDev($id, $ip_resolve, $whois_lookup)
     {
         $query = "
             INSERT INTO plugin_MACAccounting_devices 
-            SET enabled = '1', device_id = '$id'
+            SET
+                device_id = '$id',
+                enabled = '1',
+                ip_resolve = '$ip_resolve',
+                whois_lookup = '$whois_lookup'
         ";
         $result =  mysql_query($query) ;
         return $result;
