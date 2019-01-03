@@ -2,7 +2,9 @@
 <Plugin>
     <name>MAC Accounting</name>
     <className>MACAccounting</className>
-    <description>Gathers accounting statistics based on MAC addresses for Junos routers. "mac-learn-enable" configuration is required on the router interface.</description>
+    <description>Gathers accounting statistics based on MAC addresses for Junos routers. Typical usage is when you have
+        multiple MAC addresses behind a single interface. An IX connection, for example.
+        "mac-learn-enable" configuration is required on the router interface.</description>
     <location>statistics</location>
     <order>default</order>
     <version>1.0</version>
