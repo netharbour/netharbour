@@ -98,10 +98,14 @@ class Model
         return $result;
     }
 
-    public function selMACAcctIPMAC($id)
+    public function selMACAcctInfo($id)
     {
         $query = "
-            SELECT plugin_MACAccounting_info.ip_address, plugin_MACAccounting_info.mac_address, plugin_MACAccounting_info.resolved_ip
+            SELECT 
+                   plugin_MACAccounting_info.ip_address, 
+                   plugin_MACAccounting_info.mac_address, 
+                   plugin_MACAccounting_info.resolved_ip,
+                   plugin_MACAccounting_info.org_name
             FROM plugin_MACAccounting_info
             WHERE plugin_MACAccounting_info.device_id = '$id'";
         $result = mysql_query($query);

@@ -222,15 +222,15 @@ class MACAccounting
         $tableData = array();
         $handler   = array();
         $header    = array(
-            "IP Address",
             "MAC Address",
+            "IP Address",
             "Reverse DNS Lookup",
             "ASN lookup"
         );
 
-        $form = $view->tableCreate("auto", 4, true, $header, "678px");
+        $form = $view->tableCreate("auto", 4, true, $header, "1024px");
 
-        $result = $model->selMACAcctIPMAC($id);
+        $result = $model->selMACAcctInfo($id);
         if (!$result) {
             $view->errorMessage = "Oops, something went wrong with getting MAC Accounting device info";
             return $view->render('error.php');
@@ -240,7 +240,7 @@ class MACAccounting
 
         // add table data and generate device links
         while ($obj = $model->fetchObject($result)) {
-            array_push ($tableData, $obj->ip_address, $obj->mac_address, $obj->resolved_ip, $obj->org_name);
+            array_push ($tableData, $obj->mac_address, $obj->ip_address, $obj->resolved_ip, $obj->org_name);
             $url2 = $url . "&action=show_macaccounting_detail&device_name=" . $device->get_device_fqdn() . "&ip=$obj->ip_address";
             array_push($handler, "handleEvent('$url2')");
         }

@@ -7,7 +7,6 @@ my $config_file = "config/cmdb.conf";
 
 ### Import libs
 use DBI;
-use Config::Simple;
 use Getopt::Std;
 use Socket;
 use LWP::Simple;
@@ -172,17 +171,16 @@ while ( my $mac = each(%allmacs) ) {
     # check plugin configuration settings
     my ($ip_resolve_ref, $whois_lookup_ref) = config_status($device_id);
 
-    print "$ip_resolve_ref->{$device_id}";
-    print "$whois_lookup_ref->{$device_id}";
-
+    # resolve ip
     if ($ip_resolve_ref->{$device_id} == 1) {
         $resolved_ip = resolve_ip($ip);
     } else {
         $resolved_ip = "";
     }
 
+    # asn whois lookup
     if ($whois_lookup_ref->{$device_id} == 1) {
-        $resolved_asn = asn_whois_lookup(parse_fqdn_for_asn($resolved_ip))
+        $resolved_asn = asn_whois_lookup(parse_fqdn_for_asn($resolved_ip));
     } else {
         $resolved_asn = "";
     }
@@ -190,7 +188,7 @@ while ( my $mac = each(%allmacs) ) {
     # DB update
     my $record_existence = record_exists($device_id, $ip, $mac);
 
-    store_MACAccounting_info($record_existence, $device_id, $device, $ip, $mac, $resolved_ip);
+    store_MACAccounting_info($record_existence, $device_id, $device, $ip, $mac, $resolved_ip, $resolved_asn);
 }
 
 ############################ Below are all the sub routines #########################
@@ -273,6 +271,7 @@ sub store_MACAccounting_info {
     my $ip_address    = shift;
     my $mac_address   = shift;
     my $resolved_ip   = shift;
+    my $resolved_asn  = shift;
     my $query = "";
     if ($record_exists) {
         $query = "
@@ -281,15 +280,16 @@ sub store_MACAccounting_info {
                 device_name = '$device_name',
                 ip_address = '$ip_address',
                 mac_address = '$mac_address',
-                resolved_ip = '$resolved_ip'
+                resolved_ip = '$resolved_ip',
+                org_name = '$resolved_asn'
             WHERE device_id = '$dev_id'
                 AND ip_address = '$ip_address'
                 AND mac_address = '$mac_address'
         ";
     } else {
         $query = "
-            INSERT INTO plugin_MACAccounting_info ( device_id, device_name, ip_address, mac_address, resolved_ip )
-            VALUES ('$dev_id', '$device_name', '$ip_address', '$mac_address', '$resolved_ip')
+            INSERT INTO plugin_MACAccounting_info ( device_id, device_name, ip_address, mac_address, resolved_ip, $resolved_asn )
+            VALUES ('$dev_id', '$device_name', '$ip_address', '$mac_address', '$resolved_ip', '$resolved_asn')
         ";
     }
     my $sth = $dbh->prepare($query);
@@ -332,34 +332,23 @@ sub resolve_ip {
     return $name;
 }
 
-# TODO whois lookup based on an ASN number as input
 # TODO fail quickly if HTTP lookup fails
 sub asn_whois_lookup {
     my $asn = shift;
     my $xml_string = get("http://whois.arin.net/rest/asn/$asn");
-    print "$xml_string";
     my $dom = XML::LibXML->load_xml(
         string => $xml_string,
     );
     my $dom_asn   = $dom->documentElement;
-    my ($org_ref) = $dom_asn->getChildrenByTagName('orgRef');
-
+    my ($org_ref) = $dom_asn->getChildrenByTagName("orgRef");
     return($org_ref->getAttribute("name"));
 }
 
 sub parse_fqdn_for_asn {
     my $fqdn = shift;
-    print "$fqdn\n";
-
-    # grab hostname
-    my $hostname = $fqdn =~ /([^.]+)/;
-
-    print "$hostname\n";
-
-    # grab only numbers
-    my $asn = $hostname =~ s/[^0-9]//g;
-
-    print "$asn\n";
-
+    # split up fqdn by dot (.)
+    my @names = split(/\./, $fqdn);
+    # grab only numbers from first name
+    my ($asn) = (shift @names) =~ /(\d+)/;
     return $asn;
 }
