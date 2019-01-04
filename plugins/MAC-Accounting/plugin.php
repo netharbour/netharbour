@@ -32,7 +32,9 @@ class MACAccounting
         if ($_GET['action'] == 'show_macaccounting_info') {
             return $this->renderDeviceAccounting($url, $_GET['device_id']);
         } elseif ($_GET['action'] == 'show_macaccounting_detail') {
-            return $this->renderDetailAccounting($url, $_GET['device_name'], $_GET['ip']);
+            return $this->renderDetailAccounting($url, $_GET['device_id'], $_GET['ip']);
+        } elseif ($_GET['action'] == 'show_macaccounting_zoom') {
+            return $this->renderZoomGraph($url, $_GET['device_id'], $_GET['ip'], $_GET['from'], $_GET['to']);
         } else {
             return $this->renderDeviceList($url);
         }
@@ -76,7 +78,7 @@ class MACAccounting
             return $view->render('error.php');
         };
 
-        // ensure ip_resolve and whois_lookup is checked if enabled. also populate $devices array with enable state
+        // ensure ip_resolve and asn_resolve is checked if enabled. also populate $devices array with enable state
         while ($obj = $model->fetchObject($result)) {
             $devices[$obj->device_id] = $obj->enabled;
 
@@ -86,10 +88,10 @@ class MACAccounting
                 $ipResolveChecked = "";
             }
 
-            if ($obj->whois_lookup == 1) {
-                $whoisLookupChecked = "checked='yes'";
+            if ($obj->asn_resolve == 1) {
+                $asnResolveChecked = "checked='yes'";
             } else {
-                $whoisLookupChecked = "";
+                $asnResolveChecked = "";
             }
         }
 
@@ -103,7 +105,7 @@ class MACAccounting
             "**Can slow down MAC Accounting polling if PTR records don't exist and the reverse lookup is timing out**"
         );
         array_push($tableData1,
-            $view->tableCheckBox("whois_lookup", 1, $whoisLookupChecked)
+            $view->tableCheckBox("asn_resolve", 1, $asnResolveChecked)
         );
         array_push($tableData1,
             "ASN Whois Lookup",
@@ -157,13 +159,13 @@ class MACAccounting
                 $ip_resolve = 0;
             }
 
-            if ($_POST['whois_lookup'] == 1) {
-                $whois_lookup = 1;
+            if ($_POST['asn_resolve'] == 1) {
+                $asn_resolve = 1;
             } else {
-                $whois_lookup = 0;
+                $asn_resolve = 0;
             }
 
-            $result = $model->insertEnabledDev($id, $ip_resolve, $whois_lookup);
+            $result = $model->insertEnabledDev($id, $ip_resolve, $asn_resolve);
             if (!$result) {
                 return false;
             }
@@ -214,9 +216,8 @@ class MACAccounting
     private function renderDeviceAccounting($url, $id)
     {
         // instantiate objects
-        $view   = new Template();
         $model  = new Model();
-        $device = $model->deviceObject($id);
+        $view   = new Template();
 
         // initialize variables
         $tableData = array();
@@ -228,7 +229,7 @@ class MACAccounting
             "ASN lookup"
         );
 
-        $form = $view->tableCreate("auto", 4, true, $header, "1024px");
+        $form = $view->tableCreate("auto", 4, true, $header, "900px");
 
         $result = $model->selMACAcctInfo($id);
         if (!$result) {
@@ -241,7 +242,7 @@ class MACAccounting
         // add table data and generate device links
         while ($obj = $model->fetchObject($result)) {
             array_push ($tableData, $obj->mac_address, $obj->ip_address, $obj->resolved_ip, $obj->org_name);
-            $url2 = $url . "&action=show_macaccounting_detail&device_name=" . $device->get_device_fqdn() . "&ip=$obj->ip_address";
+            $url2 = $url . "&action=show_macaccounting_detail&device_id=" . $id . "&ip=$obj->ip_address";
             array_push($handler, "handleEvent('$url2')");
         }
 
@@ -253,23 +254,24 @@ class MACAccounting
     }
 
     // renders the graph for specific MAC/IP accounting
-    private function renderDetailAccounting($url, $device_name, $ip) {
-
+    private function renderDetailAccounting($url, $id, $ip)
+    {
         // instantiate objects
         $model    = new Model();
         $view     = new Template();
         $property = $model->propertyObject();
+        $device   = $model->deviceObject($id);
 
         // initialize variables
         $tableData  = array();
         $handler    = array();
-        $header     = array($device_name);
-        $now        = "-1s";
+        $header     = array($device->get_device_fqdn());
+        $now        = time();
         $graphTimes = array(
-            "Last Day"   => "-24h",
-            "Last Week"  => "-7d",
-            "Last Month" => "-1m",
-            "Last Year"  => "-1y"
+            "Last Day"   => (time() - (24 * 60 * 60)),
+            "Last Week"  => (time() - (7 * 24 * 60 * 60)),
+            "Last Month" => (time() - (31 * 24 * 60 * 60)),
+            "Last Year"  => (time() - (365 * 24 * 60 * 60))
         );
         $graphHeight = 150;
         $graphWidth  = 900;
@@ -278,14 +280,12 @@ class MACAccounting
         $graphUnit   = str_replace(" ", "%20", $graphUnit);
         $graphType   = str_replace(" ", "%20", $graphType);
 
-        // TODO handle file not found
         $rrd_dir  = $property->get_property("path_rrddir");
-        $rrdFile  = "$rrd_dir" . "/MAC-ACCT_" . "$ip" . "_device_" . "$device_name" . ".rrd";
+        $rrdFile  = "$rrd_dir" . "/MAC-ACCT_" . "$ip" . "_device_" . $device->get_device_fqdn() . ".rrd";
 
         $form = $view->tableCreate("auto", 1, true, $header, "900px");
         $view->header = "MAC Accounting";
 
-        // TODO maybe embed this loop into graph.php? Then graph.php can be re-used easily???
         foreach ($graphTimes as $timeMnemonic => $RRDtime) {
             $pathParts = pathinfo($rrdFile);
             $filename  = $pathParts['filename'] . ".rrd";
@@ -304,7 +304,63 @@ class MACAccounting
             $view->timeMnemonic = $timeMnemonic;
             $view->graphLink    = $graphLink;
             array_push ($tableData, $view->render('graph.php'));
+            $url2 = $url . "&action=show_macaccounting_zoom&device_id=$id&ip=$ip&from=$RRDtime&to=$now";
+            array_push($handler, "handleEvent('$url2')");
         }
+
+        $view->tableHandler($form, $handler);
+        $view->tableSet($form, $tableData);
+        $view->netharbourTable = $view->tableHTML($form);
+
+        return $view->render('pluginDisplay.php');
+    }
+
+    private function renderZoomGraph($url, $id, $ip, $from, $to)
+    {
+        // instantiate objects
+        $model    = new Model();
+        $view     = new Template();
+        $property = $model->propertyObject();
+        $device   = $model->deviceObject($id);
+
+        // initialize variables
+        $tableData   = array();
+        $handler     = array();
+        $header      = array($device->get_device_fqdn());
+        $graphHeight = 150;
+        $graphWidth  = 900;
+        $graphUnit   = "Bits Per Second";
+        $graphType   = "traffic";
+        $graphUnit   = str_replace(" ", "%20", $graphUnit);
+        $graphType   = str_replace(" ", "%20", $graphType);
+
+        $rrd_dir  = $property->get_property("path_rrddir");
+        $rrdFile  = "$rrd_dir" . "/MAC-ACCT_" . "$ip" . "_device_" . $device->get_device_fqdn() . ".rrd";
+        $rrdFileName = "MAC-ACCT_" . "$ip" . "_device_" . $device->get_device_fqdn() . ".rrd";
+
+        $form = $view->tableCreate("auto", 1, true, $header, "900px");
+        $view->header = "MAC Accounting";
+
+        $pathParts = pathinfo($rrdFile);
+        $filename  = $pathParts['filename'] . ".rrd";
+
+        $graphLink =
+            "rrdgraph.php?" .
+            "file="   . $filename .
+            "&title=" . $ip .
+            "---" . $graphUnit .
+            "&height=" . $graphHeight .
+            "&width=" . $graphWidth .
+            "&type=" . $graphType .
+            "&from=" . $from .
+            "&to=" . $to;
+
+        $view->graphLink     = $graphLink;
+        $view->from          = $from;
+        $view->rrdFileName   = $rrdFileName;
+        $view->graphType     = $graphType;
+        $view->to            = $to;
+        array_push ($tableData, $view->render('zoomGraph.php'));
 
         $view->tableHandler($form, $handler);
         $view->tableSet($form, $tableData);

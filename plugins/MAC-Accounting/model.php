@@ -3,7 +3,9 @@
 include_once "classes/Device.php";
 include_once 'classes/Property.php';
 
-// TODO use PHP's new PDO db accessor
+# Note: the old MySQL API is used to access the DB. This keeps the plugin consistent with the rest of the codebase.
+# A decision on refactoring the DB code has not been made currently. When the DB connection code is refactored, then
+# this plugin will be addressed at the same time.
 
 class Model
 {
@@ -24,6 +26,8 @@ class Model
             (
                 `device_id` int(11)    NOT NULL COMMENT 'Points to devices',
                 `enabled`   tinyint(2) NOT NULL COMMENT 'enabled (1) or not (0)',
+                `ip_resolve` tinyint(2) NOT NULL COMMENT 'enabled (1) or not (0)',
+                `asn_resolve` tinyint(2) NOT NULL COMMENT 'enabled (1) or not (0)',
                 PRIMARY KEY (`device_id`),
                 CONSTRAINT `plugin_MACAccounting_devices_ibfk_1` FOREIGN KEY (`device_id`) REFERENCES `Devices` (`device_id`) ON DELETE CASCADE ON UPDATE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='MAC Accounting devices being polled'
@@ -39,12 +43,13 @@ class Model
             CREATE TABLE IF NOT EXISTS `plugin_MACAccounting_info`
             (
                 `device_id`       int(11) NOT NULL COMMENT 'Points to MACAccounting device table',
-                `device_name`     varchar(100) NOT NULL COMMENT 'FQDN of Device',
-                `ip_address`      varchar(40) NOT NULL COMMENT 'ip address',
+                `device_name`     varchar(255) NOT NULL COMMENT 'FQDN of Device',
+                `ip_address`      varchar(50) NOT NULL COMMENT 'ip address',
                 `mac_address`     varchar(20) NOT NULL COMMENT 'mac address',
-                `resolved_ip`     varchar(100) NOT NULL COMMENT 'DNS name of harvested ip',
+                `resolved_ip`     varchar(255) NOT NULL COMMENT 'DNS name of harvested ip',
+                `org_name`        varchar(200) NOT NULL COMMENT 'Org name derived from asn',
                 PRIMARY KEY (`device_id`, `ip_address`, `mac_address`),
-                CONSTRAINT `plugin_MACAccounting_info_ibfk_1` FOREIGN KEY (`device_id`) REFERENCES `plugin_MACAccounting_devices` (`device_id`) ON DELETE CASCADE ON UPDATE CASCADE 
+                CONSTRAINT `plugin_MACAccounting_info_ibfk_1` FOREIGN KEY (`device_id`) REFERENCES `plugin_MACAccounting_devices` (`device_id`) ON DELETE CASCADE ON UPDATE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='mac and ip details for MAC Accounting'
         ";
 
@@ -55,7 +60,7 @@ class Model
     public function selMACAcctDevs()
     {
         $query = "
-            SELECT device_id, enabled, ip_resolve, whois_lookup 
+            SELECT device_id, enabled, ip_resolve, asn_resolve
             FROM plugin_MACAccounting_devices
         ";
 
@@ -72,7 +77,7 @@ class Model
         return $result;
     }
 
-    public function insertEnabledDev($id, $ip_resolve, $whois_lookup)
+    public function insertEnabledDev($id, $ip_resolve, $asn_resolve)
     {
         $query = "
             INSERT INTO plugin_MACAccounting_devices 
@@ -80,7 +85,7 @@ class Model
                 device_id = '$id',
                 enabled = '1',
                 ip_resolve = '$ip_resolve',
-                whois_lookup = '$whois_lookup'
+                asn_resolve = '$asn_resolve'
         ";
         $result =  mysql_query($query) ;
         return $result;

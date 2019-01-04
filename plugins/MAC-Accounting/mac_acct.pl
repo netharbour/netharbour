@@ -4,28 +4,36 @@ use strict;
 use warnings;
 
 my $config_file = "config/cmdb.conf";
+my $plugin_conf = "plugins/MAC-Accounting/config/MACAcct.conf";
 
 ### Import libs
 use DBI;
 use Getopt::Std;
-use Socket;
-use LWP::Simple;
+# Socket module part of perl 5.10.1 (centos/rhel 6) does not have support for inet_ntop, inet_pton
+# If on centos/rhel 6, upgrade Socket from CPAN
+#     cpan ExtUtils::Constant
+#     cpan Socket
+# Otherwise use centos/rhel 7+ for perl 5.16
+use Socket qw(:DEFAULT inet_ntop inet_pton getnameinfo);
+use LWP::UserAgent;
 use XML::LibXML;
 
-###################### Get config ###########################
-## This specifies where CMDB_Config.pm i
+############## Get config #################################
+
+## This specifies where CMDB_Config.pm is
 use lib "perl/";
 
 use CMDB_Config;
-my %config = CMDB_Config::get_config($config_file);
-####################### Get config ###########################
+my %config      = CMDB_Config::get_config($config_file);
+my %plugin_conf = CMDB_Config::get_config($plugin_conf);
 
+############### Get config ################################
 
-####################### Connect To MySQL ########################
+############### Connect To MySQL ##########################
+
 my $connectionInfo="DBI:mysql:database=$config{db_name};$config{db_host}:$config{db_port}";
 my $dbh = DBI->connect($connectionInfo,$config{db_user},$config{db_pass})
     or die("Could not connect to Mysql!");
-
 
 my $snmpwalk = $config{'path_snmpwalk'};
 my $snmpget = $config{'path_snmpget'};
@@ -33,8 +41,15 @@ my $rrdupdate = $config{'path_rrdupdate'};
 my $rrdtool = $config{'path_rrdtool'};
 my $rrddir = $config{'path_rrddir'};
 
+###########################################################
 
-####################################################
+############### Set plugin config variables ###############
+
+my $proxy_support = $plugin_conf{'proxy_support'};
+my $proxy_address = $plugin_conf{'proxy_address'};
+
+###########################################################
+
 
 #-------------------------------------------------------------------------------
 #    Usage message
@@ -169,26 +184,25 @@ while ( my $mac = each(%allmacs) ) {
     system($cli);
 
     # check plugin configuration settings
-    my ($ip_resolve_ref, $whois_lookup_ref) = config_status($device_id);
+    my ($ip_resolve_ref, $asn_resolve_ref) = config_status($device_id);
 
     # resolve ip
     if ($ip_resolve_ref->{$device_id} == 1) {
-        $resolved_ip = resolve_ip($ip);
+        $resolved_ip = ip_resolve($ip);
     } else {
         $resolved_ip = "";
     }
 
     # asn whois lookup
-    if ($whois_lookup_ref->{$device_id} == 1) {
-        $resolved_asn = asn_whois_lookup(parse_fqdn_for_asn($resolved_ip));
+    if ($asn_resolve_ref->{$device_id} == 1) {
+        $resolved_asn = asn_resolve(get_asn_from_fqdn($resolved_ip), $proxy_support, $proxy_address);
     } else {
         $resolved_asn = "";
     }
 
     # DB update
-    my $record_existence = record_exists($device_id, $ip, $mac);
-
-    store_MACAccounting_info($record_existence, $device_id, $device, $ip, $mac, $resolved_ip, $resolved_asn);
+    my $record_state = record_exists($device_id, $ip, $mac);
+    store_MACAccounting_info($record_state, $device_id, $device, $ip, $mac, $resolved_ip, $resolved_asn);
 }
 
 ############################ Below are all the sub routines #########################
@@ -214,8 +228,6 @@ sub create_rrd_archive {
       RRA:MAX:0.5:24:775 \\
       RRA:MAX:0.5:288:797 ";
     system `$cmd`;
-    # print "$cli\n";
-
 }
 
 sub get_device_info {
@@ -240,12 +252,12 @@ sub get_device_info {
 sub config_status {
     my $dev_id = shift;
     my %dev_ip_resolve;
-    my %dev_whois_lookup;
+    my %dev_asn_resolve;
 
     my $query = "
         SELECT
             plugin_MACAccounting_devices.ip_resolve,
-            plugin_MACAccounting_devices.whois_lookup
+            plugin_MACAccounting_devices.asn_resolve
         FROM plugin_MACAccounting_devices
         WHERE plugin_MACAccounting_devices.enabled = '1'
         AND plugin_MACAccounting_devices.device_id = '$dev_id'
@@ -256,12 +268,12 @@ sub config_status {
     $sth->execute() or die "Couldn't execute statement: " . $sth->errstr;
     while (my @data = $sth->fetchrow_array()) {
         $dev_ip_resolve{$dev_id} = $data[0];
-        $dev_whois_lookup{$dev_id} = $data[1];
+        $dev_asn_resolve{$dev_id} = $data[1];
     }
     $sth->finish();
 
     # return references to both hashes
-    return (\%dev_ip_resolve, \%dev_whois_lookup);
+    return (\%dev_ip_resolve, \%dev_asn_resolve);
 }
 
 sub store_MACAccounting_info {
@@ -273,6 +285,7 @@ sub store_MACAccounting_info {
     my $resolved_ip   = shift;
     my $resolved_asn  = shift;
     my $query = "";
+
     if ($record_exists) {
         $query = "
             UPDATE plugin_MACAccounting_info
@@ -288,22 +301,23 @@ sub store_MACAccounting_info {
         ";
     } else {
         $query = "
-            INSERT INTO plugin_MACAccounting_info ( device_id, device_name, ip_address, mac_address, resolved_ip, $resolved_asn )
+            INSERT INTO plugin_MACAccounting_info ( device_id, device_name, ip_address, mac_address, resolved_ip, org_name )
             VALUES ('$dev_id', '$device_name', '$ip_address', '$mac_address', '$resolved_ip', '$resolved_asn')
         ";
     }
+
     my $sth = $dbh->prepare($query);
-    $sth->execute();
+    $sth->execute() or die "Couldn't execute statement: " . $sth->errstr;
     $sth->finish();
 }
 
 # returns 0 if entry cannot be found, and a 1 if found
 sub record_exists {
-    my $dev_id = shift;
-    my $ip_address = shift;
+    my $dev_id      = shift;
+    my $ip_address  = shift;
     my $mac_address = shift;
-    my $result = 0;
-    my $query = "";
+    my $result      = 0;
+    my $query       = "";
     $query = "
         SELECT device_id, ip_address, mac_address
         FROM plugin_MACAccounting_info
@@ -312,7 +326,7 @@ sub record_exists {
             AND mac_address = '$mac_address'
     ";
     my $sth = $dbh->prepare($query);
-    $sth->execute();
+    $sth->execute() or die "Couldn't execute statement: " . $sth->errstr;
     if ($sth->rows == 0) {
         $result = 0;
     }
@@ -323,28 +337,53 @@ sub record_exists {
     return $result;
 }
 
-# TODO handle IPv6 addresses. Ensure backwards compatibility with perl Socket code/version
-# TODO fail quickly if lookup fails
-# TODO use newer function than the legacy gethostbyaddr()
-sub resolve_ip {
-    my $ip_address = shift;
-    my $name = gethostbyaddr(inet_aton($ip_address), AF_INET) or die "Can't resolve address";
-    return $name;
+sub ip_resolve {
+    my $ip_addr = shift;
+    my $sock_addr;
+
+    # if ipv6
+    if ($ip_addr =~ /:/) {
+        $sock_addr = sockaddr_in6(0, inet_pton(AF_INET6, $ip_addr));
+    } else {
+        $sock_addr = sockaddr_in(0, inet_pton(AF_INET, $ip_addr));
+    }
+
+    my ($err, $hostname, $servicename) = getnameinfo($sock_addr);
+
+    if ($err) {
+        return "";
+    } else {
+        return $hostname;
+    }
 }
 
-# TODO fail quickly if HTTP lookup fails
-sub asn_whois_lookup {
-    my $asn = shift;
-    my $xml_string = get("http://whois.arin.net/rest/asn/$asn");
+sub asn_resolve {
+    my $asn          = shift;
+    my $enable_proxy = shift // 0;
+    my $proxy_dest   = shift // "";
+
+    my $ua = LWP::UserAgent->new;
+
+    if ($enable_proxy) {
+        $ua->proxy(['http'], $proxy_dest);
+    }
+
+    my $response = $ua->get("http://whois.arin.net/rest/asn/$asn");
+
+    if (!$response->is_success) {
+        return "";
+    };
+
     my $dom = XML::LibXML->load_xml(
-        string => $xml_string,
+        string => $response->content,
     );
     my $dom_asn   = $dom->documentElement;
     my ($org_ref) = $dom_asn->getChildrenByTagName("orgRef");
+
     return($org_ref->getAttribute("name"));
 }
 
-sub parse_fqdn_for_asn {
+sub get_asn_from_fqdn {
     my $fqdn = shift;
     # split up fqdn by dot (.)
     my @names = split(/\./, $fqdn);

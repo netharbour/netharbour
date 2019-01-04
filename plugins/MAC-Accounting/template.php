@@ -11,10 +11,10 @@ class Template
         $this->properties = array();
     }
 
-    public function render($htmlFile)
+    public function render($html)
     {
         ob_start();
-        $path = "plugins/MAC-Accounting/html/".$htmlFile;
+        $path = "plugins/MAC-Accounting/html/" . $html;
         include($path);
         return ob_get_clean();
     }
