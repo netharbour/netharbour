@@ -5,7 +5,6 @@ include_once 'plugins/MAC-Accounting/template.php';
 
 class MACAccounting
 {
-    // TODO test on_enable initialization (specifically how the error handling works)
     // initialization function run only when plugin is first enabled
     public function on_enable()
     {
@@ -102,14 +101,14 @@ class MACAccounting
         array_push($tableData1,
             "Reverse DNS Lookup",
             "Resolve IP to it's FQDN (only if PTR records exist)",
-            "**Can slow down MAC Accounting polling if PTR records don't exist and the reverse lookup is timing out**"
+            "**Can slow down MAC Accounting polling if PTR records don't exist**"
         );
         array_push($tableData1,
             $view->tableCheckBox("asn_resolve", 1, $asnResolveChecked)
         );
         array_push($tableData1,
             "ASN Whois Lookup",
-            "Whois lookup based on ASN number in hostname (gathered from the reverse DNS lookup)",
+            "Whois lookup based on ASN number in hostname (only if reverse DNS lookup enabled)",
             "**The only numbers in the hostname have to be the ASN (e.g. asXXXX.sub.domain)**"
         );
 
