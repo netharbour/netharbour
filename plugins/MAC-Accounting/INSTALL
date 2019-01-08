@@ -1,0 +1,29 @@
+------------------------------------
+HOW TO INSTALL MAC ACCOUNTING PLUGIN
+------------------------------------
+
+### DEPENDENCIES ###
+
+Perl
+ - Perl 5.14+ (IPv6 support in Socket.pm)
+ - Perl LWP::UserAgent
+ - Perl XML::LibXML
+
+Netharbour
+ - Requires the on_enable function for plugins. (https://github.com/netharbour/netharbour/pull/10)
+
+
+### INSTALLATION ###
+
+Plugin
+ - Copy MAC-Accounting plugin into the plugins folder of Netharbour
+
+Configuration
+ - Enable plugin with Netharbour
+    - Configuration -> Plugins -> Refresh Plugins
+    - Check box for MAC Accounting and "Enable checked plugins for users" (new database tables created when enabled)
+    - "Configure" plugin
+
+ - Edit config/MACAcct.conf if,
+   - Proxy support is required for the ASN lookup (talks to http://whois.arin.net/rest/asn/)
+   - Manually override ASN lookup field(s)
