@@ -45,8 +45,9 @@ my $rrddir = $config{'path_rrddir'};
 
 ############### Set plugin config variables ###############
 
-my $proxy_support = $plugin_conf{'proxy_support'};
-my $proxy_address = $plugin_conf{'proxy_address'};
+my $proxy_support     = $plugin_conf{'proxy_support'};
+my $proxy_address     = $plugin_conf{'proxy_address'};
+my $asn_desc_override = $plugin_conf{'asn_desc_override'};
 
 ###########################################################
 
@@ -195,7 +196,7 @@ while ( my $mac = each(%allmacs) ) {
 
     # asn whois lookup
     if ($asn_resolve_ref->{$device_id} == 1) {
-        $resolved_asn = asn_resolve(get_asn_from_fqdn($resolved_ip), $proxy_support, $proxy_address);
+        $resolved_asn = asn_resolve(get_asn_from_fqdn($resolved_ip), $proxy_support, $proxy_address, $asn_desc_override, $resolved_ip, \%plugin_conf);
     } else {
         $resolved_asn = "";
     }
@@ -358,14 +359,22 @@ sub ip_resolve {
 }
 
 sub asn_resolve {
-    my $asn          = shift;
-    my $enable_proxy = shift // 0;
-    my $proxy_dest   = shift // "";
+    my $asn               = shift // 0;
+    my $enable_proxy      = shift // 0;
+    my $proxy_dest        = shift // "";
+    my $asn_desc_override = shift // 0;
+    my $fqdn              = shift // "";
+    my $plugin_conf_ref   = shift // ();
 
     my $ua = LWP::UserAgent->new;
 
     if ($enable_proxy) {
         $ua->proxy(['http'], $proxy_dest);
+    }
+
+    # description override from MACAcct.conf
+    if ($asn_desc_override && $plugin_conf_ref->{$fqdn}) {
+        return($plugin_conf_ref->{$fqdn})
     }
 
     my $response = $ua->get("http://whois.arin.net/rest/asn/$asn");
