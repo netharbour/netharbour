@@ -392,8 +392,8 @@ sub send_mail {
 	my $mailcontent = shift;
 	if ($mailcontent ne '') {
                 open (MAIL, "|/usr/sbin/sendmail -oi -t");
-                print MAIL "From: NetHarbour <andree.toonk\@bc.net>\n"; ## don't forget to escape the @
-                print MAIL "To: andree.toonk\@bc.net\n";
+                print MAIL "From: NetHarbour <xx\@xx.xx>\n"; ## don't forget to escape the @
+                print MAIL "To: xx\@xx.xx\n";
                 print MAIL "Subject: Interface errors detected on $device\n";
                 print MAIL "\n";
                 print MAIL "There were Interface errors detected, see detail below:\n\n";

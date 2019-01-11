@@ -33,6 +33,6 @@ $headers = "From: $from \r\n" .
 # Not emailing for now!
 # Feb 4, 2014:wq
 #
-#mail($to, $subject, $message, $headers);
+mail($to, $subject, $message, $headers);
 
 ?>
