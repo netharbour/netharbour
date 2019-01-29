@@ -37,13 +37,23 @@ for my $device_id ( sort {$a <=> $b} (keys %devices_todo) ) {
     my $device_name = $devices_todo{$device_id};
     wait unless $counter <= $max_process;
 
-    #------------------ Start SCU DCU ----------------------------------
-    print scalar localtime() . " $0 -- starting process #$counter: => $device_name\n" unless $verbose < 2;
-    my $start_time = time;
-    &exec_scu_dcu($device_id,$device_name);
-    my $end_time = time;
-    my $proc_time = $end_time - $start_time;
-    print scalar localtime() . " $0 -- finished process #$counter: => $device_name ($proc_time sec)\n" unless $verbose < 2;
+    my $pid = fork();
+    if ($pid) {
+        # parent
+    } elsif ($pid == 0) {
+
+        #------------------ Start SCU DCU ----------------------------------
+        print scalar localtime() . " $0 -- starting process #$counter: => $device_name\n" unless $verbose < 2;
+        my $start_time = time;
+        &exec_scu_dcu($device_id, $device_name);
+        my $end_time = time;
+        my $proc_time = $end_time - $start_time;
+        print scalar localtime() . " $0 -- finished process #$counter: => $device_name ($proc_time sec)\n" unless $verbose < 2;
+        exit 0;
+    } else {
+        warn "could not fork: $!\n";
+    }
+
     $counter++;
 }
 
