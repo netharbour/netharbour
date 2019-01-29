@@ -66,13 +66,15 @@ sub get_devices_to_check {
     my %device_list;
     my $query = "
     	SELECT
-    		plugin_SCUDCU_devices.device_id,
-    		Devices.name
-        		FROM plugin_SCUDCU_devices, Devices
-        		WHERE plugin_SCUDCU_devices.enabled = '1'
-        		AND plugin_SCUDCU_devices.device_id = Devices.device_id
-        		ORDER BY plugin_SCUDCU_devices.device_id
-	";
+    		plugin_SCUDCU_devices.device_id, Devices.name
+        FROM
+            plugin_SCUDCU_devices, Devices
+        WHERE
+            plugin_SCUDCU_devices.enabled = '1'
+        AND
+            plugin_SCUDCU_devices.device_id = Devices.device_id
+        ORDER BY
+            plugin_SCUDCU_devices.device_id";
 
     my $sth = $dbh->prepare($query);
     $sth->execute() or die "Couldn't execute statement: " . $sth->errstr;
