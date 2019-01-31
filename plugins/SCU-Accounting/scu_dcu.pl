@@ -57,7 +57,7 @@ my $line;
 my @results;
 my %isp;  
 my $cli;  
-my %customernames;
+my %customer_names;
 my %scu_profile;  
 my %dest_name;
 my %jnxScuStatsBytes;  
@@ -72,46 +72,46 @@ if (!-d $rrddir) {
 
 # collect customer name  via jnxScuStatsClName
 $cli = "$snmpwalk -v 2c -On -c $community $fqdn  .1.3.6.1.4.1.2636.3.16.1.1.1.6";
-print "$cli\n";
 @results = `$cli`;
-print "collect customer name  via jnxScuStatsClName\n";
+print "jnxScuStatsClName: collect customer name (.1.3.6.1.4.1.2636.3.16.1.1.1.6)\n";
 foreach $line (@results) {
     chomp $line;
 
 	#.1.3.6.1.4.1.2636.3.16.1.1.1.6.82.1.8.84.101.108.111.115.69.110.103 = STRING: "TelosEng"
     if ( $line =~ /\.1\.3\.6\.1\.4\.1\.2636\.3\.16\.1\.1\.1\.6\.(\d+)\.(\d+)\.(\d+)\.(\d+)\.(.+) = STRING: \"(.+)\"/) {
-        $customernames{$5} = $6;
+        $customer_names{$5} = $6;
 		$isp{$1} ='';
-		print "Customer name $5 == $6\n";
+		print "jnxScuStatsClName: $5 == $6\n";
     } else {
-        #print "no match for $line\n";
+        print "jnxScuStatsClName: no match for $line\n";
     }
 }
 
 # Now collect customer name via jnxDcuStatsClName
-$cli = "$snmpwalk -v 2c -On -c $community $fqdn .1.3.6.1.4.1.2636.3.6.2.1.6 ";
+$cli = "$snmpwalk -v 2c -On -c $community $fqdn .1.3.6.1.4.1.2636.3.6.2.1.6";
 @results = `$cli`;
-print "collect customer name  via jnxDcuStatsClName\n";
+print "jnxDcuStatsClName: collect customer name (.1.3.6.1.4.1.2636.3.6.2.1.6)\n";
 foreach $line (@results) {
     chomp $line;
 
 	#.1.3.6.1.4.1.2636.3.6.2.1.6.155.1.9.69.109.105.108.121.67.97.114.114 = STRING: "EmilyCarr"
     if ( $line =~ /\.1\.3\.6\.1\.4\.1\.2636\.3\.6\.2\.1\.6\.(\d+)\.(\d+)\.(\d+)\.(.+) = STRING: \"(.+)\"/) {
         $isp{$1} ='';
-        $customernames{$4} = $5;
-		print "Customer name $4 == $5\n";
+        $customer_names{$4} = $5;
+		print "jnxDcuStatsClName: $4 == $5\n";
     } else {
-        #print "no match for $line\n";
+        print "jnxDcuStatsClName: no match for $line\n";
     }
 }
 
 #  collect ISP name by if index
-print " collect ISP name by if index\n";
+print "ifAlias: collect ISP name by if index (.1.3.6.1.2.1.31.1.1.1.18.<ifIndex>)\n";
 while (my ($isp_ifindex, $isp_name) = each(%isp) ) {
 	$cli = "$snmpwalk -v 2c -Onqv -c $community $fqdn  .1.3.6.1.2.1.31.1.1.1.18.$isp_ifindex";
 	my @result = `$cli`;
 	$isp_name =  $result[0];
-	chomp $isp_name;	
+	chomp $isp_name;
+    print "ifAlias: $isp_name\n";
 	$isp{$isp_ifindex}= $isp_name;
 }
 
@@ -126,22 +126,21 @@ while (my ($isp_ifindex, $isp_name) = each(%isp) ) {
 #.1.3.6.1.4.1.2636.3.16.1.1.1.6.IFINDEX.1.NUMBER_OF_CHARS."ASCII"
 #.1.3.6.1.4.1.2636.3.16.1.1.1.6.155.1.5.66.67.78.69.84 = STRING: "BCNET"
 
-# collect customer name via jnxScuStatsClName
-$cli = "$snmpwalk -v 2c -On -c $community $fqdn  .1.3.6.1.4.1.2636.3.16.1.1.1.5";
+print "jnxScuStatsBytes: collect scu stats (.1.3.6.1.4.1.2636.3.16.1.1.1.5)\n";
+$cli = "$snmpwalk -v 2c -On -c $community $fqdn .1.3.6.1.4.1.2636.3.16.1.1.1.5";
 @results = `$cli`;
 foreach $line (@results) {
     chomp $line;
 
 	#.1.3.6.1.4.1.2636.3.16.1.1.1.5.155.1.5.66.67.78.69.84 = Counter64: 251064025499
     if ( $line =~ /\.1\.3\.6\.1\.4\.1\.2636\.3\.16\.1\.1\.1\.5\.(\d+)\.1\.(\d+)\.(.+) = Counter64:\s(\d+)/) {
-		#print "Custname $3: is $custumernames{$3} and ispname is  $isp{$1}\n";
-		my $title = $customernames{$3} . " -- " . $isp{$1};
-		$scu_profile{$title} = $customernames{$3};
+		my $title = $customer_names{$3} . " -- " . $isp{$1};
+		$scu_profile{$title} = $customer_names{$3};
 		$jnxScuStatsBytes{$title} = $4; 
 		$dest_name{$title} = $isp{$1};
-		#print "jnxScuStatsBytes $3 == $4\n";
+		print "jnxScuStatsBytes: $3 == $4\n";
     } else {
-        #print "no match for $line\n";
+        print "jnxScuStatsBytes: no match for $line\n";
     }
 }
 
@@ -152,22 +151,24 @@ foreach $line (@results) {
 #3. Number of chars
 #66.67.73.84 = BCIT
 
-$cli = "$snmpwalk -v 2c -On -c $community $fqdn  1.3.6.1.4.1.2636.3.6.2.1.5";
+print "jnxDcuStatsBytes: collect dcu stats (.1.3.6.1.4.1.2636.3.6.2.1.5)\n";
+$cli = "$snmpwalk -v 2c -On -c $community $fqdn .1.3.6.1.4.1.2636.3.6.2.1.5";
 @results = `$cli`;
 foreach $line (@results) {
     chomp $line;
     if ( $line =~ /\.1\.3\.6\.1\.4\.1\.2636\.3\.6\.2\.1\.5\.(\d+)\.1\.(\d+)\.(.+) = Counter64:\s(\d+)/) {
-        my $title = $customernames{$3} . " -- " . $isp{$1};
+        my $title = $customer_names{$3} . " -- " . $isp{$1};
 		$dest_name{$title} = $isp{$1};
-		$scu_profile{$title} = $customernames{$3};
+		$scu_profile{$title} = $customer_names{$3};
 		$jnxDcuStatsBytes{$title} = $4; 
-		#print "jnxDcuStatsBytes $3 == $4\n";
+		print "jnxDcuStatsBytes: $3 == $4\n";
     } else {
-        #print "no match for $line\n";
+        print "jnxDcuStatsBytes: no match for $line\n";
     }
 }
 
-print "Received all stats\nNow updating RRD files";
+print "Received all stats\n";
+print "Now updating RRD files\n";
 
 #------------------- RRD update ----------------------------------------------
 
@@ -180,14 +181,13 @@ while (my ($title, $value) = each(%jnxScuStatsBytes) ) {
 
 	if ((defined($value)) && (defined($jnxDcuStatsBytes{$title}))) {
         my $update = "N:$value:$jnxDcuStatsBytes{$title}";
-
 		my $cli = "$rrdupdate \"$rrddir/$file_name\" $update";
         system($cli);
 		update_db($file_name);
 	}
 
-	print " SCU $title = $value\n";
-	print " DCU $title = $jnxDcuStatsBytes{$title}\n";
+	print "SCU RRD update: $title = $value\n";
+	print "DCU RRD update: $title = $jnxDcuStatsBytes{$title}\n";
 }
 
 #------------------- Sub routines ---------------------------------------------
