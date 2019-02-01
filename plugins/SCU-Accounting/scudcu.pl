@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 use strict;
 use warnings;
@@ -9,9 +9,8 @@ use Getopt::Std;
 use lib "perl/";
 use CMDB_Config;
 
-my $config_file = "config/cmdb.conf";
-
 #------------------ Get config -------------------------------------------------
+my $config_file = "config/cmdb.conf";
 my %config = CMDB_Config::get_config($config_file);
 
 #------------------ Connect to database ----------------------------------------
