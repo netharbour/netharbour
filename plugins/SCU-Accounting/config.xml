@@ -10,6 +10,6 @@
   <order>default</order>
   <version>1.0</version>
   <poller>1</poller>
-  <pollerScript>dispatch_scu_dcu.pl</pollerScript>
+  <pollerScript>dispatch_scudcu.pl</pollerScript>
   <pollerInterval>5</pollerInterval>
 </Plugin> 

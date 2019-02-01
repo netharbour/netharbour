@@ -65,10 +65,10 @@ for my $device_id ( sort {$a <=> $b} (keys %devices_todo) ) {
 sub exec_scu_dcu {
     my $device_id = shift;
     my $device_name = shift;
-    my $cli = "$cur_dir/scu_dcu.pl -d $device_id 2>&1";
+    my $cli = "$cur_dir/scudcu.pl -d $device_id 2>&1";
     my @results = `$cli`;
     foreach my $line (@results) {
-        print scalar localtime() . " scu_dcu.pl -- $device_name -> $line" unless $verbose < 1;
+        print scalar localtime() . " scudcu.pl -- $device_name -> $line" unless $verbose < 1;
     }
 }
 
