@@ -80,9 +80,9 @@ foreach $line (@results) {
     if ( $line =~ /\.1\.3\.6\.1\.4\.1\.2636\.3\.16\.1\.1\.1\.6\.(\d+)\.(\d+)\.(\d+)\.(\d+)\.(.+) = STRING: \"(.+)\"/) {
         $customer_names{$5} = $6;
 		$isp{$1} ='';
-		print "jnxScuStatsClName: $5 == $6\n";
+		#print "jnxScuStatsClName: $5 == $6\n";
     } else {
-        print "jnxScuStatsClName: no match for $line\n";
+        #print "jnxScuStatsClName: no match for $line\n";
     }
 }
 
@@ -97,9 +97,9 @@ foreach $line (@results) {
     if ( $line =~ /\.1\.3\.6\.1\.4\.1\.2636\.3\.6\.2\.1\.6\.(\d+)\.(\d+)\.(\d+)\.(.+) = STRING: \"(.+)\"/) {
         $isp{$1} ='';
         $customer_names{$4} = $5;
-		print "jnxDcuStatsClName: $4 == $5\n";
+		#print "jnxDcuStatsClName: $4 == $5\n";
     } else {
-        print "jnxDcuStatsClName: no match for $line\n";
+        #print "jnxDcuStatsClName: no match for $line\n";
     }
 }
 
@@ -110,7 +110,7 @@ while (my ($isp_ifindex, $isp_name) = each(%isp) ) {
 	my @result = `$cli`;
 	$isp_name =  $result[0];
 	chomp $isp_name;
-    print "ifAlias: $isp_name\n";
+    #print "ifAlias: $isp_name\n";
 	$isp{$isp_ifindex}= $isp_name;
 }
 
@@ -137,9 +137,9 @@ foreach $line (@results) {
 		$scu_profile{$title} = $customer_names{$3};
 		$jnxScuStatsBytes{$title} = $4; 
 		$dest_name{$title} = $isp{$1};
-		print "jnxScuStatsBytes: $3 == $4\n";
+		#print "jnxScuStatsBytes: $3 == $4\n";
     } else {
-        print "jnxScuStatsBytes: no match for $line\n";
+        #print "jnxScuStatsBytes: no match for $line\n";
     }
 }
 
@@ -160,9 +160,9 @@ foreach $line (@results) {
 		$dest_name{$title} = $isp{$1};
 		$scu_profile{$title} = $customer_names{$3};
 		$jnxDcuStatsBytes{$title} = $4; 
-		print "jnxDcuStatsBytes: $3 == $4\n";
+		#print "jnxDcuStatsBytes: $3 == $4\n";
     } else {
-        print "jnxDcuStatsBytes: no match for $line\n";
+        #print "jnxDcuStatsBytes: no match for $line\n";
     }
 }
 
@@ -185,8 +185,8 @@ while (my ($title, $value) = each(%jnxScuStatsBytes) ) {
 		update_db($file_name);
 	}
 
-	print "SCU RRD update: $title = $value\n";
-	print "DCU RRD update: $title = $jnxDcuStatsBytes{$title}\n";
+	#print "SCU RRD update: $title = $value\n";
+	#print "DCU RRD update: $title = $jnxDcuStatsBytes{$title}\n";
 }
 
 #------------------- Sub routines ---------------------------------------------
@@ -209,7 +209,7 @@ sub create_rrd_archive {
     RRA:MAX:0.5:72:2920 ";
 
     system `$cli`;
-    print "$cli\n";
+    #print "$cli\n";
 }
 
 sub get_device_info {
