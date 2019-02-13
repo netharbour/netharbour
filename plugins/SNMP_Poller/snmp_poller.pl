@@ -265,7 +265,9 @@ for my $int (sort { $index{$a} <=> $index{$b} }keys %index ) {
 		} else {
 			$update .= ":" . $ifOutNUcastPkts{$int};
 		}
-	} else {
+	}
+
+	if ((!defined($ifHCInOctets{$int})) && (!defined($ifHCOutOctets{$int})) && (!defined($ifInOctets{$int})) && (!defined($ifOutOctets{$int}))) {
 		$name = $name || '';
 		$ifalias = $ifalias || '';
 		$int = $int || '';
