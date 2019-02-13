@@ -935,7 +935,7 @@ sub get_ifOutOctets {
 	# ifindex and ifHCOutOctets 32 bits
 	my $int = shift;
 	my %snmpdata;
-	my $cli = "$snmpwalk -v 2c -c $community $fqdn IF-MIB::ifOutOctets." . $int;
+	my $cli = "$snmpwalk -v 2c -c $community $fqdn IF-MIB::ifOutOctets.$int";
 	my @results = `$cli`;
 	foreach my $line (@results) {
 		chomp $line;
@@ -1027,7 +1027,7 @@ sub get_ifInUcastPkts {
 	# ifindex and ifHCInUcastPkts 32 bits
 	my $int = shift;
 	my %snmpdata;
-	my $cli = "$snmpwalk -v 2c -c $community $fqdn IF-MIB::ifInUcastPkts." . $int;
+	my $cli = "$snmpwalk -v 2c -c $community $fqdn IF-MIB::ifInUcastPkts.$int";
 	my @results = `$cli`;
 	foreach my $line (@results) {
 		chomp $line;
@@ -1045,7 +1045,7 @@ sub get_ifOutUcastPkts {
 	# ifindex and ifOutUcastPkts 32 bits
 	my $int = shift;
 	my %snmpdata;
-	my $cli = "$snmpwalk -v 2c -c $community $fqdn IF-MIB::ifOutUcastPkts." . $int;
+	my $cli = "$snmpwalk -v 2c -c $community $fqdn IF-MIB::ifOutUcastPkts.$int";
 	my @results = `$cli`;
 	foreach my $line (@results) {
 		chomp $line;
@@ -1119,7 +1119,7 @@ sub get_ifInOctets {
 	# ifindex and inoctets 64 bits
 	my $int = shift;
 	my %snmpdata;
-	my $cli = "$snmpwalk -v 2c -c $community $fqdn IF-MIB::ifInOctets." . $int;
+	my $cli = "$snmpwalk -v 2c -c $community $fqdn IF-MIB::ifInOctets.$int";
 	my @results = `$cli`;
 	foreach my $line (@results) {
 		chomp $line;
