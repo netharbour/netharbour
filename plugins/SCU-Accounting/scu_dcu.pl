@@ -36,13 +36,13 @@ my $community = $ARGV[1];    # community
 
 my $line;
 my @results;
-my %isp;  
-my $cli;  
-my %custumernames;  
-my %scu_profile;  
+my %isp;
+my $cli;
+my %custumernames;
+my %scu_profile;
 my %dest_name;
-my %jnxScuStatsBytes;  
-my %jnxDcuStatsBytes;  
+my %jnxScuStatsBytes;
+my %jnxDcuStatsBytes;
 
 #my $deviceid = get_device_id($device);
 my $fqdn = get_device_fqdn($deviceid);
@@ -58,7 +58,7 @@ foreach $line (@results) {
 	#.1.3.6.1.4.1.2636.3.16.1.1.1.6.82.1.8.84.101.108.111.115.69.110.103 = STRING: "TelosEng"
 
         if ( $line =~ /\.1\.3\.6\.1\.4\.1\.2636\.3\.16\.1\.1\.1\.6\.(\d+)\.(\d+)\.(\d+)\.(\d+)\.(.+) = STRING: \"(.+)\"/) {
-               $custumernames{$5} = $6; 
+               $custumernames{$5} = $6;
 		$isp{$1} ='';
 		print "Customer name $5 == $6\n";
         }
@@ -78,7 +78,7 @@ foreach $line (@results) {
 
         if ( $line =~ /\.1\.3\.6\.1\.4\.1\.2636\.3\.6\.2\.1\.6\.(\d+)\.(\d+)\.(\d+)\.(.+) = STRING: \"(.+)\"/) {
 		$isp{$1} ='';
-               $custumernames{$4} = $5; 
+               $custumernames{$4} = $5;
 		print "Customer name $4 == $5\n";
         }
         else {
@@ -92,7 +92,7 @@ while ( my ($isp_ifindex, $isp_name) = each(%isp) ) {
 	$cli = "$snmpwalk -v 2c -Onqv -c $community $fqdn  .1.3.6.1.2.1.31.1.1.1.18.$isp_ifindex";
 	my @result = `$cli`;
 	$isp_name =  $result[0];
-	chomp $isp_name;	
+	chomp $isp_name;
 	$isp{$isp_ifindex}= $isp_name;
 }
 
@@ -122,7 +122,7 @@ foreach $line (@results) {
 		#print "Custname $3: is $custumernames{$3} and ispname is  $isp{$1}\n";
 		my $title = $custumernames{$3} . " -- " . $isp{$1};
 		$scu_profile{$title} = $custumernames{$3};
-		$jnxScuStatsBytes{$title} = $4; 
+		$jnxScuStatsBytes{$title} = $4;
 		$dest_name{$title} = $isp{$1};
 		#print "jnxScuStatsBytes $3 == $4\n";
         }
@@ -147,7 +147,7 @@ foreach $line (@results) {
 		my $title = $custumernames{$3} . " -- " . $isp{$1};
 		$dest_name{$title} = $isp{$1};
 		$scu_profile{$title} = $custumernames{$3};
-		$jnxDcuStatsBytes{$title} = $4; 
+		$jnxDcuStatsBytes{$title} = $4;
 		#print "jnxDcuStatsBytes $3 == $4\n";
         }
         else {
@@ -182,7 +182,7 @@ sub create_rrd_archive {
         my $file_name = shift;
         #special chars replaced by a -, unix doesnt like / in filename
         #64 bits max is 18446744073709551616
-        
+
         #  105120 samples of 5 minutes  (365 days = 12(1hour) * 24(1day) *365(1year) )
         #  2920 samples of 6 hour ( 2 years of 1 hour samples. 4 * 365 * 2 = 2920)
 	# 12500000000 = 100gbs=  12,5GBs
@@ -235,7 +235,7 @@ sub insert_db {
 	my $title = shift;
 	my $file_name = shift;
 	my $device_id = shift;
-        my $query = "INSERT INTO accounting_sources SET 
+        my $query = "INSERT INTO accounting_sources SET
 		device_id = '$device_id',
 		title = '$title',
 		scu_profile = '$scu_profile',
@@ -250,7 +250,7 @@ sub insert_db {
 
 sub update_db {
 	my $file_name = shift;
-        my $query = "update accounting_sources SET 
+        my $query = "update accounting_sources SET
 		last_update = NOW()
 		WHERE
 		file = '$file_name'";

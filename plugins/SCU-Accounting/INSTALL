@@ -1,0 +1,20 @@
+----------------------------------------
+HOW TO INSTALL SCU-DCU ACCOUNTING PLUGIN
+----------------------------------------
+
+### DEPENDENCIES ###
+
+Netharbour
+ - Requires the on_enable function for plugins. (https://github.com/netharbour/netharbour/pull/10)
+
+
+### INSTALLATION ###
+
+Plugin
+ - Copy SCU-Accounting plugin into the plugins folder of Netharbour
+
+Configuration
+ - Enable plugin with Netharbour
+    - Configuration -> Plugins -> Refresh Plugins
+    - Check box for SCU-DCU Accounting and "Enable checked plugins for users" (new database table created when enabled)
+    - "Configure" plugin
