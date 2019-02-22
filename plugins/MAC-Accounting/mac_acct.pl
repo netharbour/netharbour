@@ -17,6 +17,7 @@ use Getopt::Std;
 use Socket qw(:DEFAULT inet_ntop inet_pton getnameinfo);
 use LWP::UserAgent;
 use XML::LibXML;
+use JSON;
 
 ############## Get config #################################
 
@@ -47,7 +48,7 @@ my $rrddir = $config{'path_rrddir'};
 
 my $proxy_support     = $plugin_conf{'proxy_support'};
 my $proxy_address     = $plugin_conf{'proxy_address'};
-my $asn_desc_override = $plugin_conf{'asn_desc_override'};
+my $org_desc_override = $plugin_conf{'org_desc_override'};
 
 ###########################################################
 
@@ -101,8 +102,8 @@ my %jnxMacHCInFrames;
 my %jnxMacHCOutOctets;
 my %jnxMacHCOutFrames;
 my %allmacs;
-my $resolved_ip;
-my $resolved_asn;
+my $hostname;
+my $orgname;
 
 #first get ARP table
 $cli = "$snmpwalk -v 2c -Onq -c $community $fqdn .1.3.6.1.2.1.4.22.1.2";
@@ -189,21 +190,21 @@ while ( my $mac = each(%allmacs) ) {
 
     # resolve ip
     if ($ip_resolve_ref->{$device_id} == 1) {
-        $resolved_ip = ip_resolve($ip);
+        $hostname = ip_resolve($ip);
     } else {
-        $resolved_ip = "";
+        $hostname = "";
     }
 
-    # asn whois lookup
+    # get asn by ip, then resolve to orgname
     if ($asn_resolve_ref->{$device_id} == 1) {
-        $resolved_asn = asn_resolve(get_asn_from_fqdn($resolved_ip), $proxy_support, $proxy_address, $asn_desc_override, $resolved_ip, \%plugin_conf);
+        $orgname = get_orgname_from_asn(get_asn_from_ip($ip), $proxy_support, $proxy_address, $org_desc_override, $ip, \%plugin_conf);
     } else {
-        $resolved_asn = "";
+        $orgname = "";
     }
 
     # DB update
     my $record_state = record_exists($device_id, $ip, $mac);
-    store_MACAccounting_info($record_state, $device_id, $device, $ip, $mac, $resolved_ip, $resolved_asn);
+    store_MACAccounting_info($record_state, $device_id, $device, $ip, $mac, $hostname, $orgname);
 }
 
 ############################ Below are all the sub routines #########################
@@ -358,12 +359,12 @@ sub ip_resolve {
     }
 }
 
-sub asn_resolve {
+sub get_orgname_from_asn {
     my $asn               = shift // 0;
     my $enable_proxy      = shift // 0;
     my $proxy_dest        = shift // "";
-    my $asn_desc_override = shift // 0;
-    my $fqdn              = shift // "";
+    my $org_desc_override  = shift // 0;
+    my $ip                = shift // "";
     my $plugin_conf_ref   = shift // ();
 
     my $ua = LWP::UserAgent->new;
@@ -373,30 +374,48 @@ sub asn_resolve {
     }
 
     # description override from MACAcct.conf
-    if ($asn_desc_override && $plugin_conf_ref->{$fqdn}) {
-        return($plugin_conf_ref->{$fqdn})
+    if ($org_desc_override && $plugin_conf_ref->{$ip}) {
+        return($plugin_conf_ref->{$ip})
     }
 
-    my $response = $ua->get("http://whois.arin.net/rest/asn/$asn");
+    my $response = $ua->get("https://peeringdb.com/api/net?asn=$asn");
 
     if (!$response->is_success) {
         return "";
     };
 
-    my $dom = XML::LibXML->load_xml(
-        string => $response->content,
-    );
-    my $dom_asn   = $dom->documentElement;
-    my ($org_ref) = $dom_asn->getChildrenByTagName("orgRef");
+    my $content = $response->content;
+    my $content_hash_ref =from_json($content);
 
-    return($org_ref->getAttribute("name"));
+    return($content_hash_ref->{'data'}[0]{'name'});
 }
 
-sub get_asn_from_fqdn {
-    my $fqdn = shift;
-    # split up fqdn by dot (.)
-    my @names = split(/\./, $fqdn);
-    # grab only numbers from first name
-    my ($asn) = (shift @names) =~ /(\d+)/;
-    return $asn;
+sub get_asn_from_ip {
+    my $ip_addr      = shift // "";
+    my $enable_proxy = shift // 0;
+    my $proxy_dest   = shift // "";
+
+    my $ua = LWP::UserAgent->new;
+
+    if ($enable_proxy) {
+        $ua->proxy(['http'], $proxy_dest);
+    }
+
+    my $response;
+
+    # ipv6
+    if ($ip_addr =~ /:/) {
+        $response = $ua->get("https://peeringdb.com/api/netixlan?ipaddr6__in=$ip_addr");
+    } else {
+        $response = $ua->get("https://peeringdb.com/api/netixlan?ipaddr4__in=$ip_addr");
+    }
+
+    if (!$response->is_success) {
+        return "";
+    }
+
+    my $content = $response->content;
+    my $content_hash_ref = from_json($content);
+
+    return($content_hash_ref->{'data'}[0]{'asn'});
 }
