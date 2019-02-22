@@ -107,9 +107,9 @@ class MACAccounting
             $view->tableCheckBox("asn_resolve", 1, $asnResolveChecked)
         );
         array_push($tableData1,
-            "ASN Whois Lookup",
-            "Whois lookup based on ASN number in hostname (only if reverse DNS lookup enabled)",
-            "**The only numbers in the hostname have to be the ASN (e.g. asXXXX.sub.domain)**"
+            "OrgName Lookup",
+            "OrgName lookup based on ASN, derived from IP address",
+            "**Uses peeringdb API**"
         );
 
         // get all devices, compare with enabled devices for polling. If a match, check the box.
@@ -224,8 +224,8 @@ class MACAccounting
         $header    = array(
             "MAC Address",
             "IP Address",
-            "Reverse DNS Lookup",
-            "ASN lookup"
+            "FQDN",
+            "Org Name"
         );
 
         $form = $view->tableCreate("auto", 4, true, $header, "900px");

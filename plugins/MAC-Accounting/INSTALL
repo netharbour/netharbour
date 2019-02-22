@@ -6,8 +6,9 @@ HOW TO INSTALL MAC ACCOUNTING PLUGIN
 
 Perl
  - Perl 5.14+ (IPv6 support in Socket.pm)
+ - Perl LWP::Protocol::https
  - Perl LWP::UserAgent
- - Perl XML::LibXML
+ - Perl JSON
 
 Netharbour
  - Requires the on_enable function for plugins. (https://github.com/netharbour/netharbour/pull/10)
@@ -25,5 +26,5 @@ Configuration
     - "Configure" plugin
 
  - Edit config/MACAcct.conf if,
-   - Proxy support is required for the ASN lookup (talks to http://whois.arin.net/rest/asn/)
-   - Manually override ASN lookup field(s)
+   - Proxy support is required for the org name lookup (talks to peeringdb API)
+   - Manually override org name field(s)

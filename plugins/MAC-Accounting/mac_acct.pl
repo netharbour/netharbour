@@ -16,7 +16,6 @@ use Getopt::Std;
 # Otherwise use centos/rhel 7+ for perl 5.16
 use Socket qw(:DEFAULT inet_ntop inet_pton getnameinfo);
 use LWP::UserAgent;
-use XML::LibXML;
 use JSON;
 
 ############## Get config #################################
@@ -48,7 +47,7 @@ my $rrddir = $config{'path_rrddir'};
 
 my $proxy_support     = $plugin_conf{'proxy_support'};
 my $proxy_address     = $plugin_conf{'proxy_address'};
-my $org_desc_override = $plugin_conf{'org_desc_override'};
+my $org_name_override = $plugin_conf{'org_name_override'};
 
 ###########################################################
 
@@ -197,7 +196,7 @@ while ( my $mac = each(%allmacs) ) {
 
     # get asn by ip, then resolve to orgname
     if ($asn_resolve_ref->{$device_id} == 1) {
-        $orgname = get_orgname_from_asn(get_asn_from_ip($ip), $proxy_support, $proxy_address, $org_desc_override, $ip, \%plugin_conf);
+        $orgname = get_orgname_from_asn(get_asn_from_ip($ip), $proxy_support, $proxy_address, $org_name_override, $ip, \%plugin_conf);
     } else {
         $orgname = "";
     }
@@ -363,7 +362,8 @@ sub get_orgname_from_asn {
     my $asn               = shift // 0;
     my $enable_proxy      = shift // 0;
     my $proxy_dest        = shift // "";
-    my $org_desc_override  = shift // 0;
+
+    my $org_name_override  = shift // 0;
     my $ip                = shift // "";
     my $plugin_conf_ref   = shift // ();
 
@@ -374,7 +374,7 @@ sub get_orgname_from_asn {
     }
 
     # description override from MACAcct.conf
-    if ($org_desc_override && $plugin_conf_ref->{$ip}) {
+    if ($org_name_override && $plugin_conf_ref->{$ip}) {
         return($plugin_conf_ref->{$ip})
     }
 
