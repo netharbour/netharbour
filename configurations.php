@@ -1168,31 +1168,42 @@ function updateDashboard()
 function updatePlugins()
 {
 	global $tool, $propertyForm;
-	
+
 	$enabledPlugins = $_POST['list'];
-	//print_r($enabledWidgets);
-	
 	$plugins = Plugins::get_plugins();
-	
+
 	$update = true;
 	foreach ($plugins as $id => $value)
 	{
 		$isEnabled = false;
 		$curPlugin = new Plugins($id);
+
+		$previously_enabled = $curPlugin->get_enabled();
+
 		foreach ($enabledPlugins as $eID => $eValue)
 		{
 			if ($id == $eValue)
 			{
+				if (!$previously_enabled) // Run on_enable function of plugin (if exists), if plugin not previously enabled
+				{
+					include_once $curPlugin->get_filename();
+					$className = $curPlugin->get_class_name();
+					$pluginClass = new $className();
+
+					if (method_exists($pluginClass, "on_enable")) {
+						$pluginClass->on_enable();
+					}
+				}
 				$curPlugin->set_enabled(true);
 				$isEnabled = true;
 			}
 		}
-		
+
 		if (!$isEnabled)
 		{
 			$curPlugin->set_enabled(false);
 		}
-		
+
 		if ($curPlugin->update_plugin())
 		{$update = true;}
 		else
@@ -1202,7 +1213,7 @@ function updatePlugins()
 			break;
 		}
 	}
-	
+
 	if($update)
 	{
 		$status="success";

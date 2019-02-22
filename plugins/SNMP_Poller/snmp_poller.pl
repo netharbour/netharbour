@@ -148,14 +148,8 @@ my %ifHCOutUcastPkts = get_ifHCOutUcastPkts();
 
 
 ###### 32 bit counters ############
-my %ifInOctets = get_ifInOctets();
-my %ifOutOctets =  get_ifOutOctets();
-
 my %ifInErrors =  get_ifInErrors();
 my %ifOutErrors = get_ifOutErrors();
-
-my %ifInUcastPkts = get_ifInUcastPkts();
-my %ifOutUcastPkts = get_ifOutUcastPkts();
 
 my %ifInNUcastPkts =  get_ifInNUcastPkts();
 my %ifOutNUcastPkts = get_ifOutNUcastPkts();
@@ -177,6 +171,12 @@ for my $int (sort { $index{$a} <=> $index{$b} }keys %index ) {
 	};
 
 	my $ifOperStatus = $OperStatus{$int};
+
+	# defining 32 bit counter hashes as empty for this interface, if required they will be populated just in time
+	my %ifInOctets = ();
+	my %ifOutOctets = ();
+	my %ifInUcastPkts = ();
+	my %ifOutUcastPkts = ();
 
 	## RRD Stuff
 	#first check if rrd file exist, if not create
@@ -224,7 +224,15 @@ for my $int (sort { $index{$a} <=> $index{$b} }keys %index ) {
 			$update .= ":" . $ifOutNUcastPkts{$int};
 		}
 			
-	} elsif ((defined($ifInOctets{$int})) && (defined($ifOutOctets{$int}))) {
+	} else {
+		# just in time, collect 32 bit counters for this interface because 64 bit don't exist
+		%ifInOctets = get_ifInOctets($int);
+		%ifOutOctets =  get_ifOutOctets($int);
+		%ifInUcastPkts = get_ifInUcastPkts($int);
+		%ifOutUcastPkts = get_ifOutUcastPkts($int);
+	}
+
+	if ((defined($ifInOctets{$int})) && (defined($ifOutOctets{$int}))) {
 		##### This means we're using 32bit counters
 		$update = "N:$ifInOctets{$int}:$ifOutOctets{$int}";
 		if (!defined($ifInErrors{$int})) {
@@ -257,7 +265,9 @@ for my $int (sort { $index{$a} <=> $index{$b} }keys %index ) {
 		} else {
 			$update .= ":" . $ifOutNUcastPkts{$int};
 		}
-	} else {
+	}
+
+	if ((!defined($ifHCInOctets{$int})) && (!defined($ifHCOutOctets{$int})) && (!defined($ifInOctets{$int})) && (!defined($ifOutOctets{$int}))) {
 		$name = $name || '';
 		$ifalias = $ifalias || '';
 		$int = $int || '';
@@ -392,8 +402,8 @@ sub send_mail {
 	my $mailcontent = shift;
 	if ($mailcontent ne '') {
                 open (MAIL, "|/usr/sbin/sendmail -oi -t");
-                print MAIL "From: NetHarbour <andree.toonk\@bc.net>\n"; ## don't forget to escape the @
-                print MAIL "To: andree.toonk\@bc.net\n";
+                print MAIL "From: NetHarbour <xx\@xx.xx>\n"; ## don't forget to escape the @
+                print MAIL "To: xx\@xx.xx\n";
                 print MAIL "Subject: Interface errors detected on $device\n";
                 print MAIL "\n";
                 print MAIL "There were Interface errors detected, see detail below:\n\n";
@@ -924,10 +934,10 @@ sub get_ifHCOutOctets {
 }
 
 sub get_ifOutOctets {
-	
 	# ifindex and ifHCOutOctets 32 bits
+	my $int = shift;
 	my %snmpdata;
-	my $cli = "$snmpwalk -v 2c -c $community $fqdn IF-MIB::ifOutOctets";
+	my $cli = "$snmpwalk -v 2c -c $community $fqdn IF-MIB::ifOutOctets.$int";
 	my @results = `$cli`;
 	foreach my $line (@results) {
 		chomp $line;
@@ -1017,8 +1027,9 @@ sub get_ifHCOutUcastPkts {
 
 sub get_ifInUcastPkts {
 	# ifindex and ifHCInUcastPkts 32 bits
+	my $int = shift;
 	my %snmpdata;
-	my $cli = "$snmpwalk -v 2c -c $community $fqdn IF-MIB::ifInUcastPkts";
+	my $cli = "$snmpwalk -v 2c -c $community $fqdn IF-MIB::ifInUcastPkts.$int";
 	my @results = `$cli`;
 	foreach my $line (@results) {
 		chomp $line;
@@ -1034,8 +1045,9 @@ sub get_ifInUcastPkts {
 
 sub get_ifOutUcastPkts {
 	# ifindex and ifOutUcastPkts 32 bits
+	my $int = shift;
 	my %snmpdata;
-	my $cli = "$snmpwalk -v 2c -c $community $fqdn IF-MIB::ifOutUcastPkts";
+	my $cli = "$snmpwalk -v 2c -c $community $fqdn IF-MIB::ifOutUcastPkts.$int";
 	my @results = `$cli`;
 	foreach my $line (@results) {
 		chomp $line;
@@ -1107,8 +1119,9 @@ sub get_ifHCInOctets {
 
 sub get_ifInOctets {
 	# ifindex and inoctets 64 bits
+	my $int = shift;
 	my %snmpdata;
-	my $cli = "$snmpwalk -v 2c -c $community $fqdn IF-MIB::ifInOctets";
+	my $cli = "$snmpwalk -v 2c -c $community $fqdn IF-MIB::ifInOctets.$int";
 	my @results = `$cli`;
 	foreach my $line (@results) {
 		chomp $line;

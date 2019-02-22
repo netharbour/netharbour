@@ -139,7 +139,7 @@ class Search{
 			array_push($this->conResults, $obj);
 		}
 		
-		$query = "SELECT * FROM contacts WHERE (name_first LIKE '".$keyword."' || name_middle LIKE '".$keyword."' || name_last LIKE '".$keyword."' || country LIKE '".$keyword."' || province LIKE '".$keyword."' || city LIKE '".$keyword."' || addr_line1 LIKE '".$keyword."' || addr_line2 LIKE '".$keyword."' || zipcode LIKE '".$keyword."' || phone1 LIKE '".$keyword."' || phone2 LIKE '".$keyword."' || phone_cell LIKE '".$keyword."' || phone_pager LIKE '".$keyword."' || phone_fax LIKE '".$keyword."' || email LIKE '".$keyword."' || notes LIKE '".$keyword."' || external_id1 LIKE '".$keyword."' || external_id2 LIKE '".$keyword."' || external_id3 LIKE '".$keyword."') ORDER BY name_last";
+		$query = "SELECT * FROM contacts WHERE (name_first LIKE '".$keyword."' || name_middle LIKE '".$keyword."' || name_last LIKE '".$keyword."' || CONCAT(name_first, ' ', name_last) LIKE '".$keyword."' || country LIKE '".$keyword."' || province LIKE '".$keyword."' || city LIKE '".$keyword."' || addr_line1 LIKE '".$keyword."' || addr_line2 LIKE '".$keyword."' || zipcode LIKE '".$keyword."' || phone1 LIKE '".$keyword."' || phone2 LIKE '".$keyword."' || phone_cell LIKE '".$keyword."' || phone_pager LIKE '".$keyword."' || phone_fax LIKE '".$keyword."' || email LIKE '".$keyword."' || notes LIKE '".$keyword."' || external_id1 LIKE '".$keyword."' || external_id2 LIKE '".$keyword."' || external_id3 LIKE '".$keyword."') ORDER BY name_last";
 		$result = mysql_query($query) or die('Error, query failed. ' . mysql_error());
 		
 		if (!$result)  {

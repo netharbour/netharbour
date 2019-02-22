@@ -604,8 +604,8 @@ class ChangeManager
 
 		$html_content .= $form->ShowForm(1);
 
-		$mail_from = "BCNET CMDB Account <scripts@bc.net>";
-		$mail_to = "noc@bc.net";
+		$mail_from = "Netharbour Account <xx@xx.xx>";
+		$mail_to = "xx@xx.xx";
 		$mail_headers = "From: $mail_from\r\n" .
 		"Reply-To: $mail_from\r\n" .
 		"X-Mailer: Network Change Report Mailer\n";

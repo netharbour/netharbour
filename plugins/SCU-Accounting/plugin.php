@@ -38,8 +38,126 @@ class SCUAccounting {
 		return;
 	}
 
-        //renders the content
-        function get_content() {
+	// run only when plugin is first enabled
+	public function on_enable()
+	{
+		$query = "
+            CREATE TABLE IF NOT EXISTS `plugin_SCUDCU_devices`
+            (
+                `device_id` int(11)    NOT NULL COMMENT 'Points to devices',
+                `enabled`   tinyint(2) NOT NULL COMMENT 'enabled (1) or not (0)',
+                PRIMARY KEY (`device_id`),
+                CONSTRAINT `plugin_SCUDCU_devices_ibfk_1` FOREIGN KEY (`device_id`) REFERENCES `Devices` (`device_id`) ON DELETE CASCADE ON UPDATE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='SCU DCU Accounting devices being polled'
+        ";
+
+		$result = mysql_query($query);
+		if (!$result)  {
+			return "<b>plugin_SCUDCU_devices database table could not be created</b>";
+		}
+	}
+
+	// renders the config box
+	public function get_config($id='')
+	{
+		// initialize variables
+		$content = '';
+		$devices = array();
+
+		$form_rows     = "auto";
+		$form_cols     = 4;
+		$form_sortable = true;
+		$form_width    = "auto";
+		$form_data     = array();
+		$form_header   = array(
+			"",
+			"Plugin Setting",
+			"Description",
+			"Notes"
+		);
+
+		// setup form
+		$form = new Form($form_rows, $form_cols);
+		$form->setSortable($form_sortable);
+		$form->setTableWidth($form_width);
+		$form->setHeadings($form_header);
+
+		// get enabled devices already
+		$query = "
+			SELECT device_id, enabled
+			FROM plugin_SCUDCU_devices";
+		$result = mysql_query($query);
+		if(!result) {
+			return "<b>Unable to read plugin_SCUDCU_devices table. Try enabling the plugin first!</b>";
+		}
+
+		while ($obj = mysql_fetch_object($result)) {
+			$devices[$obj->device_id] = $obj->enabled;
+		}
+
+		$content .= "<h1>Select the Devices you would like to poll for SCU/DCU accounting statistics</h1>";
+		$content .= "
+			<form id='configForm' method='post' name='edit_devices'>
+			<input type='hidden' name='class' value='SCUAccounting'></input>
+			<input type='hidden' name='id' value=".$id."></input>
+			";
+
+		// push all devices onto form data array, adding a checkbox if they already exist in plugin_SCUDCU_devices DB table
+		foreach (Device::get_devices() as $id => $name) {
+			if ((array_key_exists($id, $devices)) && ($devices[$id] == 1)) {
+				$checked = "checked='yes'";
+			} else {
+				$checked = "";
+			}
+
+			$device_info = new Device($id);
+			array_push($form_data, "<input type=checkbox name=devices[] value='$id' $checked >");
+			array_push($form_data, $name);
+			array_push($form_data, $device_info->get_type_name());
+			array_push($form_data, $device_info->get_location_name());
+		}
+
+		// add data to form, generate HTML and render
+		$form->setData($form_data);
+		$content .= $form->showForm();
+		$content .= "
+			<div style='clear:both;'></div>
+			<input type='submit' class='submitBut' name='plugin_update' value='Update configuration'/>
+			</form>
+			";
+
+		return "$content";
+	}
+
+	// updates the configuration from config box, returns true or false
+	public function update_config($values='')
+	{
+		// delete all
+		$query = "
+			DELETE FROM plugin_SCUDCU_devices
+		";
+		$result = mysql_query($query);
+		if (!$result) {
+			return false;
+		}
+
+		// add selected
+		foreach($_POST['devices'] as $key => $id) {
+			$update_query = "
+				INSERT INTO plugin_SCUDCU_devices
+				SET enabled = '1', device_id = '$id'
+			";
+			$update_result = mysql_query($update_query);
+			if (!$update_result) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	//renders the content
+	function get_content() {
 
 		// Firts do a init
 		// To determin Url info
@@ -1754,39 +1872,6 @@ class SCUAccounting {
 
 	}
 
-	/*
-        //renders the configuration
-        function get_config($id) {
-                // the name of the property must follow the conventions Plugin<Classname>_<propertyName>
-                // have the form post and make sure the submit button is named plugin_update
-                // make sure there is also a hidden value giving the name of this Class file
-				
-		// ADDED THESE $id, <input type='hidden' name='id' value=".$id."></input>, and Plugin_AjaxTermUrl
-                return "<h1> Configure Ajax Term Url</h1>
-                        Please configure the Ajax Term Url in the form below<br>
-
-                        <form id='configForm' method='post'>
-						<input type='hidden' name='id' value=".$id."></input>
-                        <input type='hidden' name='class' value='AjaxTerm'></input>
-                        AjaxTerm url:
-                        <input type='text' name='Plugin_AjaxTermUrl'/>
-                <input type='submit' class='submitBut' name='plugin_update' value='Update config'/>
-                </form>";
-        }
-
-        //updates the configuration
-        function update_config($values)
-        {
-			include_once("classes/Property.php");
-			//calls on for the database class
-			$property = new Property();    
-			//sets the properties to store them, use a switch statement to store different description based on different properties
-			
-			//needs to return a true value to indicate that update has completed.
-			if($property->set_property($values['name'],$values['value'], "Ajax Term URL"))
-			{return true;}
-        }
-	*/
 	function si_to_int($value){
 		$number = false;
 		$quantifier = false;
