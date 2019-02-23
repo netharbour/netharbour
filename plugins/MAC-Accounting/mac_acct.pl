@@ -196,7 +196,7 @@ while ( my $mac = each(%allmacs) ) {
 
     # get asn by ip, then resolve to orgname
     if ($asn_resolve_ref->{$device_id} == 1) {
-        $orgname = get_orgname_from_asn(get_asn_from_ip($ip), $proxy_support, $proxy_address, $org_name_override, $ip, \%plugin_conf);
+        $orgname = get_orgname_from_asn(get_asn_from_ip($ip, $proxy_support, $proxy_address), $proxy_support, $proxy_address, $org_name_override, $ip, \%plugin_conf);
     } else {
         $orgname = "";
     }
