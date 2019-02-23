@@ -370,7 +370,7 @@ sub get_orgname_from_asn {
     my $ua = LWP::UserAgent->new;
 
     if ($enable_proxy) {
-        $ua->proxy(['http'], $proxy_dest);
+        $ua->proxy(['http', 'https'], $proxy_dest);
     }
 
     # description override from MACAcct.conf
@@ -398,7 +398,7 @@ sub get_asn_from_ip {
     my $ua = LWP::UserAgent->new;
 
     if ($enable_proxy) {
-        $ua->proxy(['http'], $proxy_dest);
+        $ua->proxy(['http', 'https'], $proxy_dest);
     }
 
     my $response;
