@@ -109,7 +109,7 @@ class MACAccounting
         array_push($tableData1,
             "OrgName Lookup",
             "OrgName lookup based on ASN, derived from IP address",
-            "**Uses peeringdb API**"
+            "**Uses peeringdb API. If OrgName is blank, it's because peeringdb has incomplete peer info. Use manual override in config file.**"
         );
 
         // get all devices, compare with enabled devices for polling. If a match, check the box.
