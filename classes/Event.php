@@ -295,7 +295,23 @@ class Event {
 				$query_where AND
 				active = '1';
 			";
-		$result = mysql_query($alert_query) or error_log('Error, query failed. ' . mysql_error() ." $alert_query");
+		// mysql documentations suggest that in case of a deadlock
+		// the client should retry automatically, doing 3 times
+		$retry = 1;
+		while ( $retry <= 3 ){
+			$result = mysql_query($alert_query);
+			if (!$result) {
+				error_log('Error, query failed. Try '. $retry . ' - ' . mysql_error() ." $alert_query");
+				if ( strpos(mysql_error(), "Deadlock") == false ) {
+					// Only retry when Deadlock error
+					return false;
+				}
+				$retry++;
+			} else {
+				break;
+			}
+		}
+        $result = mysql_query($alert_query) or error_log('Error, query failed. ' . mysql_error() ." $alert_query");
 		return $result;
 	}
 
@@ -780,4 +796,3 @@ class Event {
 
 
 }
-
