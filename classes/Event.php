@@ -253,8 +253,13 @@ class Event {
 			return $obj->event_id;
 		} elseif (mysql_num_rows($result) > 1)  {
 			error_log("More than 1 row returned in event_exists(). query: $alert_query");
-			$obj = mysql_fetch_object($result);
-			return $obj->event_id;
+			// Because more than one event exists, we clear all of them
+			// so we can insert a clean one
+			$clear_event_res = $this->clear_event();
+			if ( $clear_event_res == false ){
+				error_log('Clear event in event_exists() was not successful.');
+			}
+			return false;
 		} else {
 			$this->error = "Undefined state in event_exists()";
 			error_log("Undefined state in event_exists()");
