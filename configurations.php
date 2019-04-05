@@ -772,7 +772,17 @@ function displayPaths() {
 
 function displayPlugins() {
 	global $tool, $propertyForm;
-	
+
+    if($_GET['mode'] == refreshPlugins)
+    {
+        $dir = "plugins/";
+        $status = checkDirForPlugins($dir);
+        if ($status != true)
+        {
+            $propertyForm->warning("Failed to refresh. Reason: ". $status) ;
+        }
+    }
+
 	$plugins = Plugins::get_plugins();
 	
 	echo "<style>";
@@ -804,16 +814,6 @@ function displayPlugins() {
 			
 		</thead>
 		<tbody>";
-	
-	if($_GET['mode'] == refreshPlugins)
-	{
-		$dir = "plugins/";
-		$status = checkDirForPlugins($dir);
-		if ($status != true)
-		{
-			$propertyForm->warning("Failed to refresh. Reason: ". $status) ;
-		}
-	}
 	
 	foreach ($plugins as $id => $value)
 	{
