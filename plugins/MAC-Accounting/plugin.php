@@ -8,8 +8,8 @@ class MACAccounting
     // initialization function run only when plugin is first enabled
     public function on_enable()
     {
-        $model = new Model();
-        $view  = new Template();
+        $model = new plugin_MACAccounting\Model();
+        $view  = new plugin_MACAccounting\Template();
 
         if (!$model->createMACAcctDevs()) {
             $view->errorMessage = "Oops, something went wrong with creating plugin_MACAccounting_devices DB table.";
@@ -43,8 +43,8 @@ class MACAccounting
     public function get_config($id='')
     {
         // instantiate objects
-        $view  = new Template();
-        $model = new Model();
+        $view  = new plugin_MACAccounting\Template();
+        $model = new plugin_MACAccounting\Model();
 
         // initialize variables
         $devices      = array();
@@ -143,7 +143,7 @@ class MACAccounting
     // updates the configuration from config box, needs to return true or false.
     public function update_config($values='')
     {
-        $model = new Model();
+        $model = new plugin_MACAccounting\Model();
 
         $result = $model->delMACAcctDevs();
         if (!$result) {
@@ -179,8 +179,8 @@ class MACAccounting
     private function renderDeviceList($url)
     {
         // instantiate objects
-        $view  = new Template();
-        $model = new Model();
+        $view  = new plugin_MACAccounting\Template();
+        $model = new plugin_MACAccounting\Model();
 
         // initialize variables
         $tableData = array();
@@ -215,8 +215,8 @@ class MACAccounting
     private function renderDeviceAccounting($url, $id)
     {
         // instantiate objects
-        $model  = new Model();
-        $view   = new Template();
+        $model  = new plugin_MACAccounting\Model();
+        $view   = new plugin_MACAccounting\Template();
 
         // initialize variables
         $tableData = array();
@@ -256,8 +256,8 @@ class MACAccounting
     private function renderDetailAccounting($url, $id, $ip)
     {
         // instantiate objects
-        $model    = new Model();
-        $view     = new Template();
+        $model    = new plugin_MACAccounting\Model();
+        $view     = new plugin_MACAccounting\Template();
         $property = $model->propertyObject();
         $device   = $model->deviceObject($id);
 
@@ -317,8 +317,8 @@ class MACAccounting
     private function renderZoomGraph($url, $id, $ip, $from, $to)
     {
         // instantiate objects
-        $model    = new Model();
-        $view     = new Template();
+        $model    = new plugin_MACAccounting\Model();
+        $view     = new plugin_MACAccounting\Template();
         $property = $model->propertyObject();
         $device   = $model->deviceObject($id);
 

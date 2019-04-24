@@ -1,7 +1,12 @@
 <?php
 
+namespace plugin_MACAccounting;
+
 include_once "classes/Device.php";
 include_once 'classes/Property.php';
+
+use Device;
+use Property;
 
 # Note: the old MySQL API is used to access the DB. This keeps the plugin consistent with the rest of the codebase.
 # A decision on refactoring the DB code has not been made currently. When the DB connection code is refactored, then
