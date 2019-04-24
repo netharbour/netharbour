@@ -1,6 +1,10 @@
 <?php
 
+namespace plugin_MACAccounting;
+
 include_once 'classes/Form.php';
+
+use Form;
 
 class Template
 {
