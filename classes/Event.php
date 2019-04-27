@@ -253,8 +253,13 @@ class Event {
 			return $obj->event_id;
 		} elseif (mysql_num_rows($result) > 1)  {
 			error_log("More than 1 row returned in event_exists(). query: $alert_query");
-			$obj = mysql_fetch_object($result);
-			return $obj->event_id;
+			// Because more than one event exists, we clear all of them
+			// so we can insert a clean one
+			$clear_event_res = $this->clear_event();
+			if ( $clear_event_res == false ){
+				error_log('Clear event in event_exists() was not successful.');
+			}
+			return false;
 		} else {
 			$this->error = "Undefined state in event_exists()";
 			error_log("Undefined state in event_exists()");
@@ -295,7 +300,29 @@ class Event {
 				$query_where AND
 				active = '1';
 			";
-		$result = mysql_query($alert_query) or error_log('Error, query failed. ' . mysql_error() ." $alert_query");
+		// mysql documentation suggest that in case of a deadlock
+		// the client should retry automatically, doing 3 times
+		$retry = 1;
+		while ( $retry <= 3 ){
+		    $result = mysql_query($alert_query);
+		    if (!$result) {
+			$mysql_error_message = mysql_error();
+			error_log('Error, query failed. Retry '. $retry . ' - ' . $mysql_error_message . " $alert_query");
+			if ( strpos($mysql_error_message, "eadlock") !== false ) {
+			    // Only retry when Deadlock error
+			    $retry++;
+			} else {
+			    error_log('It has been impossible to clean the event for ' . $query_where . ' because error was: ' . $mysql_error_message);
+			    return false;
+			}
+		    } else {
+			if ( $retry > 1 ) {
+			    // Logging second and third tries after Deadlock
+			    error_log('Event for ' . $query_where . ' inserted after ' . $retry . ' tries');
+			}
+			break;
+		    }
+		}
 		return $result;
 	}
 
@@ -780,4 +807,3 @@ class Event {
 
 
 }
-
