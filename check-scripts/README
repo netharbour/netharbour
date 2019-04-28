@@ -1,0 +1,38 @@
+##### Documentation for Check Scripts #####
+
+## check_oid_value.pl
+
+Description:
+    This check script is used to poll a single OID (-O) against a host device (-H) using SNMP v2c with provided
+    community (-C) and check if the returned result matches the expected value (-V).
+
+    Normally, an event check is configured within the GUI of Netharbour. However, if you want to manually run the check
+    script, the following usage is below.
+
+Usage: check_oid_value.pl --help
+
+    OID Value Check Script: 1.0
+        usage:   ./check-scripts/check_oid_value.pl -H <host> -C <community> -O <oid> -V 0
+        example: ./check-scripts/check_oid_value.pl -H dev.domain -C public -O .1.3.6.1.4.1.15255.1.2.1.1.1.2.3 -V 0
+
+        Required Flags
+        [-H]          : Host address to check
+        [-C]          : Host community string
+        [-O]          : OID
+        [-V]          : The value to match against
+
+        Optional Flags
+        [--help]      : Print this message
+        [--version]   : Print script version
+
+Details:
+    Within Netharbour, when configuring a check, 'Key1' is the OID string (-O) and 'Key2' is the expected value (-V).
+    The selected 'Hostname' device provides the host address (-H), while the script pulls the community (-O) tied to the
+    device.
+
+    If the returned value matches the expected value, Netharbour event reports 'Ok'/green. If it does not match, it
+    reports 'Critical'/red. Error handling reports 'Unknown'/blue.
+
+    Finally, note that you can check on any value, not just INTEGER. The script does a stringwise comparision to
+    match returned value (stripped of whitespace) with expected value. Therefore the check script can easily monitor
+    odd-ball OID's that may report an arbitrary STRING.
