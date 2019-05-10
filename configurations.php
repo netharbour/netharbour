@@ -10,7 +10,7 @@ if(!isset($_GET['mode']))
 {
 ?>
 <div id="main">
-<h1 id="mainTitle">CONGFIGURATIONS</h1>
+<h1 id="mainTitle">CONFIGURATIONS</h1>
 <?
 }
 ?>
