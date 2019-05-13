@@ -177,7 +177,7 @@ while ( my $mac = each(%allmacs) ) {
         #print "could not find IP for mac $mac\n";
         next;
     }
-    my $rrd_file = "MAC-ACCT_". $ip ."_device_$fqdn.rrd";
+    my $rrd_file = "MAC-ACCT_". $ip ."_deviceid$device_id.rrd";
     $rrd_file =~ s/([\$\#\@\\\/\s])/-/g;
     create_rrd_archive($rrd_file) if ! -e "$rrddir/$rrd_file";
     my $update = "N:$jnxMacHCInOctets{$mac}:$jnxMacHCOutOctets{$mac}:$jnxMacHCInFrames{$mac}:$jnxMacHCOutFrames{$mac}";

@@ -280,7 +280,7 @@ class MACAccounting
         $graphType   = str_replace(" ", "%20", $graphType);
 
         $rrd_dir  = $property->get_property("path_rrddir");
-        $rrdFile  = "$rrd_dir" . "/MAC-ACCT_" . "$ip" . "_device_" . $device->get_device_fqdn() . ".rrd";
+        $rrdFile  = "$rrd_dir" . "/MAC-ACCT_" . "$ip" . "_deviceid" . $id . ".rrd";
 
         $form = $view->tableCreate("auto", 1, true, $header, "900px");
         $view->header = "MAC Accounting";
@@ -334,8 +334,8 @@ class MACAccounting
         $graphType   = str_replace(" ", "%20", $graphType);
 
         $rrd_dir  = $property->get_property("path_rrddir");
-        $rrdFile  = "$rrd_dir" . "/MAC-ACCT_" . "$ip" . "_device_" . $device->get_device_fqdn() . ".rrd";
-        $rrdFileName = "MAC-ACCT_" . "$ip" . "_device_" . $device->get_device_fqdn() . ".rrd";
+        $rrdFile  = "$rrd_dir" . "/MAC-ACCT_" . "$ip" . "_deviceid" . $id . ".rrd";
+        $rrdFileName = "MAC-ACCT_" . "$ip" . "_deviceid" . $id . ".rrd";
 
         $form = $view->tableCreate("auto", 1, true, $header, "900px");
         $view->header = "MAC Accounting";
