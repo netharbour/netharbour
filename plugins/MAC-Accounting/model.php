@@ -48,6 +48,8 @@ class Model
                 `mac_address`     varchar(20) NOT NULL COMMENT 'mac address',
                 `resolved_ip`     varchar(255) NOT NULL COMMENT 'DNS name of harvested ip',
                 `org_name`        varchar(200) NOT NULL COMMENT 'Org name derived from asn',
+                `last_seen`       timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                `active`          tinyint(3) NOT NULL DEFAULT 1 COMMENT 'is mac or ip still seen?',
                 PRIMARY KEY (`device_id`, `ip_address`, `mac_address`),
                 CONSTRAINT `plugin_MACAccounting_info_ibfk_1` FOREIGN KEY (`device_id`) REFERENCES `plugin_MACAccounting_devices` (`device_id`) ON DELETE CASCADE ON UPDATE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='mac and ip details for MAC Accounting'
@@ -112,7 +114,8 @@ class Model
                    plugin_MACAccounting_info.resolved_ip,
                    plugin_MACAccounting_info.org_name
             FROM plugin_MACAccounting_info
-            WHERE plugin_MACAccounting_info.device_id = '$id'";
+            WHERE plugin_MACAccounting_info.device_id = '$id'
+                AND plugin_MACAccounting_info.active = '1'";
         $result = mysql_query($query);
         return $result;
     }
