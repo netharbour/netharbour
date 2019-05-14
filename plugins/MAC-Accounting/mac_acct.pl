@@ -206,6 +206,9 @@ while ( my $mac = each(%allmacs) ) {
     store_MACAccounting_info($record_state, $device_id, $device, $ip, $mac, $hostname, $orgname);
 }
 
+# update whether DB rows are active anymore for the device being polled
+update_active_status($device_id);
+
 ############################ Below are all the sub routines #########################
 
 sub create_rrd_archive {
@@ -295,7 +298,9 @@ sub store_MACAccounting_info {
                 ip_address = '$ip_address',
                 mac_address = '$mac_address',
                 resolved_ip = '$resolved_ip',
-                org_name = '$resolved_asn'
+                org_name = '$resolved_asn',
+                last_seen = NOW(),
+                active = 1
             WHERE device_id = '$dev_id'
                 AND ip_address = '$ip_address'
                 AND mac_address = '$mac_address'
@@ -418,4 +423,22 @@ sub get_asn_from_ip {
     my $content_hash_ref = from_json($content);
 
     return($content_hash_ref->{'data'}[0]{'asn'});
+}
+
+sub update_active_status {
+
+    # age out DB row after 10 minutes of no updates
+    my $device_id = shift;
+    my $query = "
+        UPDATE
+            plugin_MACAccounting_info
+        SET
+            active = 0
+        WHERE device_id = '$device_id'
+            AND last_seen < CURRENT_TIMESTAMP - INTERVAL 600 SECOND
+        ";
+
+    my $sth = $dbh->prepare($query);
+    $sth->execute() or die "Couldn't execute statement: " . $sth->errstr;
+    $sth->finish();
 }
