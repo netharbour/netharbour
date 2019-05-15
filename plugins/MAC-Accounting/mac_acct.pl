@@ -194,16 +194,22 @@ while ( my $mac = each(%allmacs) ) {
         $hostname = "";
     }
 
-    # get asn by ip, then resolve to orgname
+    # API call to peeringDB
+    my $ip_details_ref = get_ip_details($ip, $proxy_support, $proxy_address);
+
+    # pull ASN from JSON, then resolve to orgname
     if ($asn_resolve_ref->{$device_id} == 1) {
-        $orgname = get_orgname_from_asn(get_asn_from_ip($ip, $proxy_support, $proxy_address), $proxy_support, $proxy_address, $org_name_override, $ip, \%plugin_conf);
+        $orgname = get_orgname_from_asn(get_asn_from_json($ip_details_ref), $proxy_support, $proxy_address, $org_name_override, $ip, \%plugin_conf);
     } else {
         $orgname = "";
     }
 
+    # pull ipv6_address from JSON
+    my $ipv6_address = get_ipv6_from_json($ip_details_ref);
+
     # DB update
     my $record_state = record_exists($device_id, $ip, $mac);
-    store_MACAccounting_info($record_state, $device_id, $device, $ip, $mac, $hostname, $orgname);
+    store_MACAccounting_info($record_state, $device_id, $device, $ip, $mac, $hostname, $orgname, $ipv6_address);
 }
 
 ############################ Below are all the sub routines #########################
@@ -285,6 +291,7 @@ sub store_MACAccounting_info {
     my $mac_address   = shift;
     my $resolved_ip   = shift;
     my $resolved_asn  = shift;
+    my $ipv6_address  = shift // "";
     my $query = "";
 
     if ($record_exists) {
@@ -295,15 +302,18 @@ sub store_MACAccounting_info {
                 ip_address = '$ip_address',
                 mac_address = '$mac_address',
                 resolved_ip = '$resolved_ip',
-                org_name = '$resolved_asn'
+                org_name = '$resolved_asn',
+                ipv6_address = '$ipv6_address',
+                last_seen = NOW(),
+                active = 1
             WHERE device_id = '$dev_id'
                 AND ip_address = '$ip_address'
                 AND mac_address = '$mac_address'
         ";
     } else {
         $query = "
-            INSERT INTO plugin_MACAccounting_info ( device_id, device_name, ip_address, mac_address, resolved_ip, org_name )
-            VALUES ('$dev_id', '$device_name', '$ip_address', '$mac_address', '$resolved_ip', '$resolved_asn')
+            INSERT INTO plugin_MACAccounting_info ( device_id, device_name, ip_address, mac_address, resolved_ip, org_name, ipv6_address )
+            VALUES ('$dev_id', '$device_name', '$ip_address', '$mac_address', '$resolved_ip', '$resolved_asn', '$ipv6_address')
         ";
     }
 
@@ -358,6 +368,36 @@ sub ip_resolve {
     }
 }
 
+# make API call and return reference to JSON details
+sub get_ip_details {
+    my $ip_addr      = shift // "";
+    my $enable_proxy = shift // 0;
+    my $proxy_dest   = shift // "";
+
+    my $ua = LWP::UserAgent->new;
+
+    if ($enable_proxy) {
+        $ua->proxy(['http', 'https'], $proxy_dest);
+    }
+
+    my $response;
+
+    # ipv6
+    if ($ip_addr =~ /:/) {
+        $response = $ua->get("https://peeringdb.com/api/netixlan?ipaddr6__in=$ip_addr");
+    } else {
+        $response = $ua->get("https://peeringdb.com/api/netixlan?ipaddr4__in=$ip_addr");
+    }
+
+    if (!$response->is_success) {
+        return "";
+    }
+
+    my $content = $response->content;
+    my $content_hash_ref = from_json($content);
+    return $content_hash_ref;
+}
+
 sub get_orgname_from_asn {
     my $asn               = shift // 0;
     my $enable_proxy      = shift // 0;
@@ -390,32 +430,18 @@ sub get_orgname_from_asn {
     return($content_hash_ref->{'data'}[0]{'name'});
 }
 
-sub get_asn_from_ip {
-    my $ip_addr      = shift // "";
-    my $enable_proxy = shift // 0;
-    my $proxy_dest   = shift // "";
-
-    my $ua = LWP::UserAgent->new;
-
-    if ($enable_proxy) {
-        $ua->proxy(['http', 'https'], $proxy_dest);
-    }
-
-    my $response;
-
-    # ipv6
-    if ($ip_addr =~ /:/) {
-        $response = $ua->get("https://peeringdb.com/api/netixlan?ipaddr6__in=$ip_addr");
-    } else {
-        $response = $ua->get("https://peeringdb.com/api/netixlan?ipaddr4__in=$ip_addr");
-    }
-
-    if (!$response->is_success) {
-        return "";
-    }
-
-    my $content = $response->content;
-    my $content_hash_ref = from_json($content);
-
+sub get_asn_from_json {
+    my $content_hash_ref = shift;
     return($content_hash_ref->{'data'}[0]{'asn'});
+}
+
+sub get_ipv6_from_json {
+    my $content_hash_ref = shift;
+    my $addr = $content_hash_ref->{'data'}[0]{'ipaddr6'};
+
+    if (!$addr) {
+        return("None");
+    } else {
+        return($addr);
+    }
 }
