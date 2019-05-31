@@ -26,61 +26,33 @@ class WeatherMap
 	// renders the plugin configuration
 	public function get_config($id='')
 	{
+		// TODO: have a button to dynamically add another field. May involve javascript?? or not?? refreshing box?? I dunno? (somewhere in this function anyway)
 		// instantiate objects
 		$view  = new plugin_weathermap\View();
 		$model = new plugin_weathermap\Model();
 
 		// initialize variables
-		$devices        = array();
 		$tableData      = array();
 		$header         = array(
-			"",
 			"Configuration File"
 		);
 
-		$form = $view->tableCreate("auto", 5, true, $header, "auto");
+		$form = $view->tableCreate("auto", 1, true, $header, "500px");
 
-		$view->header = "Select devices to monitor blackholed routes";
-		$view->value  = "BHMon";
+		$view->header = "Custom Weathermap Configuration Files";
+		$view->value  = "Weathermap";
 		$view->id     = $id;
 
-		// get all Blackhole devices, return failure text on sql failure
-		$devicesToPoll = $model->selectAllBHMonDevices();
-		if (!$devicesToPoll) {
-			$view->errorMessage = "Unable to read plugin_BHMon_devices table. Try enabling the plugin first!";
+		// get all configurations, return failure text on sql failure
+		$configurations = $model->selectAllWeathermapConfiguration();
+		if (!$configurations) {
+			$view->errorMessage = "Unable to read plugin_Weathermap_configuration table. Try enabling the plugin first!";
 			return $view->render('error.php');
 		};
 
-		// populate devices array, insert comma between elements only if more than 1 exist. e.g. aaa,bbb,ccc
-		while ($row = $model->fetchObject($devicesToPoll)) {
-
-			if ($devices[$row->device_id]) {
-				$devices[$row->device_id] .= ',' . $row->logical_system;
-			} else {
-				$devices[$row->device_id] .= $row->logical_system;
-			}
-
-		}
-
-		// get all devices, compare with enabled devices for polling. If a match, check the box.
-		foreach ($model->getAllDevices() as $id => $name) {
-
-			$deviceObject = $model->deviceObject($id);
-			if ((array_key_exists($id, $devices))) {
-				$deviceChecked = "checked='yes'";
-				$logicalSystems = $devices[$id];
-			} else {
-				$deviceChecked  = "";
-				$logicalSystems = "";
-			}
-
-			// push table row elements into array for devices
-			array_push($tableData, $view->tableCheckBox("devices[]", $id, $deviceChecked));
-			array_push($tableData, $name);
-			array_push($tableData, $deviceObject->get_type_name());
-			array_push($tableData, $deviceObject->get_location_name());
-			array_push($tableData, $view->tableFillableForm("logical_system[$id]", $logicalSystems));
-
+		// push right into fillable table rows
+		while ($row = $model->fetchObject($configurations)) {
+			array_push($tableData, $view->tableFillableForm("configuration[$row->id]", $row->configuration_file));
 		}
 
 		$view->tableSet($form, $tableData);
@@ -91,6 +63,22 @@ class WeatherMap
 		return $view->render('deviceConfig.php');
 	}
 
+	// pull from config box and pushes to database, returns true or false
+	public function update_config($id='')
+	{
+		$model = new plugin_weathermap\Model();
+
+		$result = $model->deleteWeathermapConfiguration();
+
+		if (!$result) {
+			return false;
+		}
+
+		// TODO: get current fields in config box, then push to database
+
+		return true;
+	}
+
 	// render UI functions
 
 	// generate the weathermap page
@@ -98,7 +86,7 @@ class WeatherMap
 	{
 		$view = new plugin_weathermap\View();
 
-		// TODO: refactor these guts...
+		// TODO: refactor these guts...they need to dynamically set HTML files and stuff
 		// Include the map config file
 		// This files contains all the available weathermaps;
 		include_once("plugins/weathermap/map_files.php");
@@ -151,142 +139,5 @@ class WeatherMap
 		return $view->render('pluginDisplay.php');
 	}
 
-
 }
-
-//////////////////////////////////////////////////////////////
-
-
-
-	// updates the configuration from the config box, returns true or false
-	public function update_config($id='')
-	{
-		$model = new plugin_BHMon\Model();
-
-		$result = $model->deleteBHMonDevices();
-
-		if (!$result) {
-			return false;
-		}
-
-		# pre-process input fields
-		$lsFields = array();
-
-		foreach ($_POST['logical_system'] as $lsKey => $lsValue) {
-			if (trim($lsValue) === '') {
-				// pass
-				continue;
-			} else {
-				$lsFields[$lsKey] = trim($lsValue);
-			}
-		}
-
-		// add all selected devices to DB with logical systems (each row is a [device_id] => [logical_system] key/value pair)
-		foreach ($_POST['devices'] as $key => $deviceID) {
-
-			$ls_array = explode(',', $lsFields[$deviceID]);
-			foreach ($ls_array as $ls) {
-				$result = $model->insertBHMonDevice($deviceID, $ls);
-			}
-
-			if (!$result) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	### UI render functions
-
-	private function renderBlackholeRoutes()
-	{
-		// instantiate objects
-		$view  = new plugin_BHMon\View();
-		$model = new plugin_BHMon\Model();
-
-		// instantiate variables
-		$tableData = array();
-		$handler   = array();
-		$header    = array(
-			"Route",
-			"Protocol",
-			"Peer AS",
-			"Peer ID",
-			"Route Age",
-			"Time Since Seen",
-			"Origin Device",
-			"Logical System"
-		);
-
-		$form = $view->tableCreate("auto", 8, true, $header, "1024px");
-
-		$result = $model->selectBHMonInfo();
-		if (!$result) {
-			$view->errorMessage = "Oops, something went wrong with getting the blackholed routes";
-			return $view->render('error.php');
-		}
-
-		$view->header = "Blackholed Routes";
-
-		// add table data
-		while ($object = $model->fetchObject($result)) {
-			array_push($tableData,
-				$object->route_dest . "/" . $object->prefix_len,
-				$object->route_protocol,
-				$object->peer_as,
-				$object->peer_id,
-				$this->secondsToTime($object->route_age),
-				$this->secondsToTime(($object->last_seen - $object->first_seen)),
-				$object->device_fqdn,
-				$object->logical_system
-			);
-		}
-
-		$view->tableSet($form, $tableData);
-		$view->netharbourTable = $view->tableHTML($form);
-
-		return $view->render('pluginDisplay.php');
-	}
-
-	private function secondsToTime($inputSeconds)
-	{
-		$secondsInAMinute = 60;
-		$secondsInAnHour = 60 * $secondsInAMinute;
-		$secondsInADay = 24 * $secondsInAnHour;
-
-		// Extract days
-		$days = floor($inputSeconds / $secondsInADay);
-
-		// Extract hours
-		$hourSeconds = $inputSeconds % $secondsInADay;
-		$hours = floor($hourSeconds / $secondsInAnHour);
-
-		// Extract minutes
-		$minuteSeconds = $hourSeconds % $secondsInAnHour;
-		$minutes = floor($minuteSeconds / $secondsInAMinute);
-
-		// Extract the remaining seconds
-		$remainingSeconds = $minuteSeconds % $secondsInAMinute;
-		$seconds = ceil($remainingSeconds);
-
-		// Format and return
-		$timeParts = array();
-		$sections = array(
-			'd' => (int)$days,
-			'h' => (int)$hours,
-			'm' => (int)$minutes,
-			's' => (int)$seconds,
-		);
-
-		foreach ($sections as $name => $value){
-			if ($value > 0){
-				$timeParts[] = $value.$name;
-			}
-		}
-
-		return implode(', ', $timeParts);
-	}
-}
-
 

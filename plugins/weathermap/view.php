@@ -1,8 +1,5 @@
 <?php
 
-// this should dynamically push weathermap links and the images to be displayed to html file
-// (this will push map_files.php AND plugin.php HTML content into it's own HTML files)
-
 namespace plugin_weathermap;
 
 include_once 'classes/Form.php';

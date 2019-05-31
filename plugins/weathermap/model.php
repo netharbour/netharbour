@@ -24,12 +24,12 @@ class Model
     public function createWeathermapConfiguration()
     {
         $query = "
-            CREATE TABLE IF NOT EXISTS `plugin_weathermap_configuration`
+            CREATE TABLE IF NOT EXISTS `plugin_Weathermap_configuration`
             (
                 `id` int NOT NULL AUTO_INCREMENT,
-                `configuration_file` varchar(100) NOT NULL DEFAULT 'simple.conf' COMMENT 'the weathermap configuration file',
+                `configuration_file` varchar(100) NOT NULL DEFAULT 'simple.conf' COMMENT 'a weathermap configuration file',
                 PRIMARY KEY (`id`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Weathermap plugin configuration files that are fed into the weathermap'
+            ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Weathermap plugin configuration files that are fed into weathermap'
         ";
         $result = mysql_query($query);
         return $result;
@@ -39,7 +39,7 @@ class Model
     {
         $query = "
             SELECT id, configuration_file
-            FROM plugin_weathermap_configuration
+            FROM plugin_Weathermap_configuration
         ";
 
         $result = mysql_query($query);
@@ -50,7 +50,7 @@ class Model
     {
         $query = "
             DELETE 
-            FROM plugin_weathermap_configuration
+            FROM plugin_Weathermap_configuration
         ";
 
         $result = mysql_query($query);
@@ -60,7 +60,7 @@ class Model
     public function insertWeathermapConfiguration($configuration)
     {
         $query = "
-            INSERT INTO plugin_weathermap_configuration
+            INSERT INTO plugin_Weathermap_configuration
             SET
                 configuration_file = '$configuration'
         ";
