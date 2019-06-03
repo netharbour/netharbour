@@ -88,7 +88,7 @@ sub get_devices_to_check {
     my $data;
     my $query = "
         SELECT
-            configuration
+            configuration_file
 		FROM
 		    plugin_Weathermap_configuration
     ";
