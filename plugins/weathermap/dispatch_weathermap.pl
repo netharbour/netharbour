@@ -5,7 +5,7 @@
 
 use strict;
 use warnings;
-# TODO: get this working to dispatch ./weathermap --config configs/mahWeather.conf
+
 # core imports
 use Cwd qw(abs_path);
 
@@ -32,6 +32,9 @@ my $dbh       = DBI->connect($conn_info, $config{db_user}, $config{db_pass}) or 
 my $current_directory = get_current_directory();
 my $weathermap_array_ref = get_devices_to_check();
 
+# change working dir to current dir (required as .conf file can have relative paths inside it)
+chdir($current_directory);
+
 ########## main loop, fork for each device/LS pair limited by $max_process ##########
 
 foreach my $conf_array_ref (@$weathermap_array_ref) {
@@ -57,7 +60,7 @@ foreach my $conf_array_ref (@$weathermap_array_ref) {
         # dispatch script
         print(scalar localtime() . " $0 -- starting proc num $pid_count: configuration: $configuration\n") unless $verbose < 2;
         my $start_time = time;
-
+        
         weathermap($configuration);
 
         my $end_time  = time;
@@ -77,7 +80,8 @@ foreach my $conf_array_ref (@$weathermap_array_ref) {
 sub weathermap {
     my ($configuration) = @_;
 
-    my $cli = "$current_directory/weathermap --config configs/$configuration 2>&1";
+    my $cli = "./weathermap --config configs/$configuration --output output/$configuration.png --htmloutput html/$configuration.html --image-uri ../output/$configuration.png 2>&1";
+
     my @results = `$cli`;
     foreach my $line (@results) {
         print(scalar localtime() . " weathermap -- $configuration -> $line") unless $verbose < 1;
