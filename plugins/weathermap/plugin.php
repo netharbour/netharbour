@@ -12,7 +12,7 @@ class WeatherMap
 		$view  = new plugin_weathermap\View();
 
 		if (!$model->createWeathermapConfiguration()) {
-			$view->errorMessage = "Oops, something went wrong with creating plugin_BHMon_devices DB table.";
+			$view->errorMessage = "Oops, something went wrong with creating plugin_Weathermap_configuration DB table.";
 			return $view->render('error.php');
 		}
 	}
@@ -68,13 +68,21 @@ class WeatherMap
 	{
 		$model = new plugin_weathermap\Model();
 
+		// delete config
 		$result = $model->deleteWeathermapConfiguration();
+
+        if (!$result) {
+            return false;
+        }
+
+        // insert new config
+        foreach ($_POST['configuration'] as $rowID => $configName) {
+            $result = $model->insertWeathermapConfiguration($configName);
+        }
 
 		if (!$result) {
 			return false;
 		}
-
-		// TODO: get current fields in config box, then push to database
 
 		return true;
 	}

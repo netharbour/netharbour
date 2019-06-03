@@ -34,10 +34,9 @@ my $weathermap_array_ref = get_devices_to_check();
 
 ########## main loop, fork for each device/LS pair limited by $max_process ##########
 
-foreach my $dev_array_ref (@$weathermap_array_ref) {
+foreach my $conf_array_ref (@$weathermap_array_ref) {
 
-    my $device_id = @$dev_array_ref[0];
-    my $ls        = @$dev_array_ref[1];
+    my $configuration = @$conf_array_ref[0];
 
     # if max_processes reached, wait for children to finish
     if (@pids >= $max_process) {
@@ -56,14 +55,14 @@ foreach my $dev_array_ref (@$weathermap_array_ref) {
         # child
 
         # dispatch script
-        print(scalar localtime() . " $0 -- starting proc num $pid_count: device id: $device_id\n") unless $verbose < 2;
+        print(scalar localtime() . " $0 -- starting proc num $pid_count: configuration: $configuration\n") unless $verbose < 2;
         my $start_time = time;
 
-        weathermap($device_id, $ls);
+        weathermap($configuration);
 
         my $end_time  = time;
         my $proc_time = $end_time - $start_time;
-        print(scalar localtime() . " $0 -- finished proc num $pid_count: device id: $device_id ($proc_time sec)\n") unless $verbose < 2;
+        print(scalar localtime() . " $0 -- finished proc num $pid_count: configuration: $configuration ($proc_time sec)\n") unless $verbose < 2;
         exit(0);
     } else {
         warn "could not fork: $!\n";
@@ -76,12 +75,12 @@ foreach my $dev_array_ref (@$weathermap_array_ref) {
 ########## Subroutines ##########
 
 sub weathermap {
-    my ($device_id, $logical_system) = @_;
+    my ($configuration) = @_;
 
-    my $cli = "$current_directory/bhmon.pl -D $device_id -L $logical_system 2>&1";
+    my $cli = "$current_directory/weathermap --config configs/$configuration 2>&1";
     my @results = `$cli`;
     foreach my $line (@results) {
-        print(scalar localtime() . " bhmon.pl -- $device_id -> $line") unless $verbose < 1;
+        print(scalar localtime() . " weathermap -- $configuration -> $line") unless $verbose < 1;
     }
 }
 
@@ -89,16 +88,9 @@ sub get_devices_to_check {
     my $data;
     my $query = "
         SELECT
-            plugin_BHMon_devices.device_id,
-            plugin_BHMon_devices.logical_system,
-            Devices.device_id
+            configuration
 		FROM
-		    plugin_BHMon_devices,
-		    Devices
-		WHERE
-		    plugin_BHMon_devices.device_id = Devices.device_id
-		ORDER BY
-		    plugin_BHMon_devices.device_id
+		    plugin_Weathermap_configuration
     ";
 
     my $sth = $dbh->prepare($query);
