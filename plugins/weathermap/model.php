@@ -41,7 +41,6 @@ class Model
         $query = "
             SELECT id, configuration_file, custom_image_name
             FROM plugin_Weathermap_configuration
-            WHERE configuration_file IS NOT NULL
         ";
 
         $result = mysql_query($query);
