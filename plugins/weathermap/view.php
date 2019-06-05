@@ -63,5 +63,15 @@ class View
     {
         return $form->showForm();
     }
+
+    public function tableHandler($form, $handler)
+    {
+        $form->setEventHandler($handler);
+    }
+    
+    public function tableImage($src)
+    {
+        return "<img src=$src>";
+    }
 }
 

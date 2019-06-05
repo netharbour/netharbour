@@ -27,7 +27,8 @@ class Model
             CREATE TABLE IF NOT EXISTS `plugin_Weathermap_configuration`
             (
                 `id` int NOT NULL AUTO_INCREMENT,
-                `configuration_file` varchar(100) NOT NULL DEFAULT 'simple.conf' COMMENT 'a weathermap configuration file',
+                `configuration_file` varchar(100) NULL DEFAULT NULL COMMENT 'a weathermap configuration file',
+                `custom_image_name`  varchar(100) NULL DEFAULT NULL COMMENT 'a custom weathermap image name',
                 PRIMARY KEY (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Weathermap plugin configuration files that are fed into weathermap'
         ";
@@ -38,8 +39,9 @@ class Model
     public function selectAllWeathermapConfiguration()
     {
         $query = "
-            SELECT id, configuration_file
+            SELECT id, configuration_file, custom_image_name
             FROM plugin_Weathermap_configuration
+            WHERE configuration_file IS NOT NULL
         ";
 
         $result = mysql_query($query);
@@ -57,12 +59,26 @@ class Model
         return $result;
     }
 
-    public function insertWeathermapConfiguration($configuration)
+    public function insertWeathermapConfiguration($configuration, $image_name)
     {
         $query = "
             INSERT INTO plugin_Weathermap_configuration
             SET
-                configuration_file = '$configuration'
+                configuration_file = '$configuration',
+                custom_image_name = '$image_name'
+        ";
+
+        $result = mysql_query($query);
+        return $result;
+    }
+    
+    public function insertNullWeathermapConfiguration()
+    {
+        $query = "
+            INSERT INTO plugin_Weathermap_configuration
+            SET
+                configuration_file = NULL,
+                custom_image_name = NULL
         ";
 
         $result = mysql_query($query);

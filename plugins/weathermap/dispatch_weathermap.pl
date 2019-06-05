@@ -35,11 +35,12 @@ my $weathermap_array_ref = get_devices_to_check();
 # change working dir to current dir (required as .conf file can have relative paths inside it)
 chdir($current_directory);
 
-########## main loop, fork for each device/LS pair limited by $max_process ##########
+########## main loop, fork for each config limited by $max_process ##########
 
 foreach my $conf_array_ref (@$weathermap_array_ref) {
 
     my $configuration = @$conf_array_ref[0];
+    my $custom_image  = @$conf_array_ref[1];
 
     # if max_processes reached, wait for children to finish
     if (@pids >= $max_process) {
@@ -61,7 +62,7 @@ foreach my $conf_array_ref (@$weathermap_array_ref) {
         print(scalar localtime() . " $0 -- starting proc num $pid_count: configuration: $configuration\n") unless $verbose < 2;
         my $start_time = time;
         
-        weathermap($configuration);
+        weathermap($configuration, $custom_image);
 
         my $end_time  = time;
         my $proc_time = $end_time - $start_time;
@@ -78,9 +79,14 @@ foreach my $conf_array_ref (@$weathermap_array_ref) {
 ########## Subroutines ##########
 
 sub weathermap {
-    my ($configuration) = @_;
+    my ($configuration, $custom_image) = @_;
+    my $cli;
 
-    my $cli = "./weathermap --config configs/$configuration --output output/$configuration.png --htmloutput html/$configuration.html --image-uri ../output/$configuration.png 2>&1";
+    if ($custom_image) {
+        $cli = "./weathermap --config configs/$configuration --output $custom_image.png 2>&1";
+    } else {
+        $cli = "./weathermap --config configs/$configuration --output $configuration.png 2>&1";
+    }
 
     my @results = `$cli`;
     foreach my $line (@results) {
@@ -92,9 +98,11 @@ sub get_devices_to_check {
     my $data;
     my $query = "
         SELECT
-            configuration_file
+            configuration_file, custom_image_name
 		FROM
 		    plugin_Weathermap_configuration
+        WHERE
+            configuration_file IS NOT NULL
     ";
 
     my $sth = $dbh->prepare($query);
