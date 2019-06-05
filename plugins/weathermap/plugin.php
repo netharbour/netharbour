@@ -175,6 +175,11 @@ class WeatherMap
                 $defaultMap = $row->configuration_file;
             }
             
+            // if row is NULL, skip
+            if (!$row->configuration_file) {
+                continue;
+            }
+            
             array_push($tableData, $row->configuration_file);
             $url2 = $url . "&map=$row->configuration_file";
             array_push($handler, "handleEvent('$url2')");
@@ -226,6 +231,11 @@ class WeatherMap
                 $url2 = $url . "&map=$row->custom_image_name";
                 array_push($handler, "handleEvent('$url2')");
 
+                continue;
+            }
+
+            // if row is NULL, skip
+            if (!$row->configuration_file) {
                 continue;
             }
 
