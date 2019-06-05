@@ -191,7 +191,12 @@ class WeatherMap
         
         //// Weathermap display
         
-        $view->netharbourImage = $view->tableImage("plugins/weathermap/$defaultMap.png");
+        // if no map
+        if (!$defaultMap) {
+            $view->netharbourImage = "No weathermap conf files are specified in the plugin configuration.";
+        } else {
+            $view->netharbourImage = $view->tableImage("plugins/weathermap/$defaultMap.png");
+        }
         
         // render the page
         return $view->render('pluginDisplay.php');
@@ -249,8 +254,13 @@ class WeatherMap
         $view->netharbourTableSidebar = $view->tableHTML($form);
 
         //// Weathermap display
-
-        $view->netharbourImage = $view->tableImage("plugins/weathermap/$map.png");
+        
+        // if no map
+        if (!$map) {
+            $view->netharbourImage = "No weathermap conf files are specified in the plugin configuration.";
+        } else {
+            $view->netharbourImage = $view->tableImage("plugins/weathermap/$map.png");
+        }
         
         // render the page
         return $view->render('pluginDisplay.php');
