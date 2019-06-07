@@ -1,0 +1,32 @@
+--------------------------------
+HOW TO INSTALL WEATHERMAP PLUGIN
+--------------------------------
+
+### DEPENDENCIES ###
+
+Netharbour
+ - Requires the on_enable function for plugins. (https://github.com/netharbour/netharbour/pull/10)
+
+Software
+ - PHP 4.3.x & gd module
+
+### INSTALLATION ###
+
+Plugin
+ - Copy weathermap plugin into the plugins folder of Netharbour
+
+Netharbour
+ - Ensure plugin_dispatcher.pl is set to execute every minute in your cronjob. Weathermap plugin is configured to
+   be executed every minute.
+
+Configuration
+ - Build a weathermap config file and place it inside weathermap/configs/
+    - see weathermap/docs/ for help building config file
+    - see the example config files, weathermap/configs/simple.conf or weathermap/aggregate.conf
+    - see https://www.network-weathermap.com/category/tutorials/ for help building config file
+
+ - Enable plugin with Netharbour
+    - Configuration -> Plugins -> Refresh Plugins
+    - Check box for Weathermap and "Enable checked plugins for users" (new database table created when enabled)
+    - "Configure" plugin
+       - Specify the name of the weathermap config file that was built. Specify a custom image name (if desired).

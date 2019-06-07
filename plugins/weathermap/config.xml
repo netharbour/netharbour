@@ -3,8 +3,11 @@
   <className>WeatherMap</className>
   <name>Weathermap</name>
   <location>statistics</location>
-  <subLocation></subLocation>
-  <description>Traffic weathermap</description>
+  <description>A visual representation of network statistics. The weathermap config file(s) must be manually
+  built first. See this guide: https://www.network-weathermap.com/manual/0.98/pages/main.html</description>
   <order>default</order>
-  <version>0.0</version>
+  <version>1.0</version>
+  <poller>1</poller>
+  <pollerScript>dispatch_weathermap.pl</pollerScript>
+  <pollerInterval>1</pollerInterval>
 </Plugin> 
