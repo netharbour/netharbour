@@ -1,7 +1,12 @@
 <?php
 
+namespace plugin_MACAccounting;
+
 include_once "classes/Device.php";
 include_once 'classes/Property.php';
+
+use Device;
+use Property;
 
 # Note: the old MySQL API is used to access the DB. This keeps the plugin consistent with the rest of the codebase.
 # A decision on refactoring the DB code has not been made currently. When the DB connection code is refactored, then
@@ -116,7 +121,8 @@ class Model
                    plugin_MACAccounting_info.org_name,
                    plugin_MACAccounting_info.ipv6_address
             FROM plugin_MACAccounting_info
-            WHERE plugin_MACAccounting_info.device_id = '$id'";
+            WHERE plugin_MACAccounting_info.device_id = '$id'
+                AND plugin_MACAccounting_info.active = '1'";
         $result = mysql_query($query);
         return $result;
     }

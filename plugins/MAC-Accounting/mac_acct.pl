@@ -177,7 +177,7 @@ while ( my $mac = each(%allmacs) ) {
         #print "could not find IP for mac $mac\n";
         next;
     }
-    my $rrd_file = "MAC-ACCT_". $ip ."_device_$fqdn.rrd";
+    my $rrd_file = "MAC-ACCT_". $ip ."_deviceid$device_id.rrd";
     $rrd_file =~ s/([\$\#\@\\\/\s])/-/g;
     create_rrd_archive($rrd_file) if ! -e "$rrddir/$rrd_file";
     my $update = "N:$jnxMacHCInOctets{$mac}:$jnxMacHCOutOctets{$mac}:$jnxMacHCInFrames{$mac}:$jnxMacHCOutFrames{$mac}";
@@ -211,6 +211,9 @@ while ( my $mac = each(%allmacs) ) {
     my $record_state = record_exists($device_id, $ip, $mac);
     store_MACAccounting_info($record_state, $device_id, $device, $ip, $mac, $hostname, $orgname, $ipv6_address);
 }
+
+# update whether DB rows are active anymore for the device being polled
+update_active_status($device_id);
 
 ############################ Below are all the sub routines #########################
 
@@ -444,4 +447,22 @@ sub get_ipv6_from_json {
     } else {
         return($addr);
     }
+}
+
+sub update_active_status {
+
+    # age out DB row after 10 minutes of no updates
+    my $device_id = shift;
+    my $query = "
+        UPDATE
+            plugin_MACAccounting_info
+        SET
+            active = 0
+        WHERE device_id = '$device_id'
+            AND last_seen < CURRENT_TIMESTAMP - INTERVAL 600 SECOND
+        ";
+
+    my $sth = $dbh->prepare($query);
+    $sth->execute() or die "Couldn't execute statement: " . $sth->errstr;
+    $sth->finish();
 }
