@@ -224,11 +224,12 @@ class MACAccounting
         $header    = array(
             "MAC Address",
             "IP Address",
+            "IPv6 Address",
             "FQDN",
             "Org Name"
         );
 
-        $form = $view->tableCreate("auto", 4, true, $header, "900px");
+        $form = $view->tableCreate("auto", 5, true, $header, "900px");
 
         $result = $model->selMACAcctInfo($id);
         if (!$result) {
@@ -240,7 +241,7 @@ class MACAccounting
 
         // add table data and generate device links
         while ($obj = $model->fetchObject($result)) {
-            array_push ($tableData, $obj->mac_address, $obj->ip_address, $obj->resolved_ip, $obj->org_name);
+            array_push ($tableData, $obj->mac_address, $obj->ip_address, $obj->ipv6_address, $obj->resolved_ip, $obj->org_name);
             $url2 = $url . "&action=show_macaccounting_detail&device_id=" . $id . "&ip=$obj->ip_address";
             array_push($handler, "handleEvent('$url2')");
         }
