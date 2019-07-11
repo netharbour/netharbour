@@ -301,28 +301,38 @@ class Event {
 				active = '1';
 			";
 		// mysql documentation suggest that in case of a deadlock
-		// the client should retry automatically, doing 3 times
+		// the client should retry automatically, doing 4 times
+		$NUM_RETRIES = 4;
+		$MIN_TIMEOUT = 10;
 		$retry = 1;
-		while ( $retry <= 3 ){
-		    $result = mysql_query($alert_query);
-		    if (!$result) {
-			$mysql_error_message = mysql_error();
-			error_log('Error, query failed. Retry '. $retry . ' - ' . $mysql_error_message . " $alert_query");
-			if ( strpos($mysql_error_message, "eadlock") !== false ) {
-			    // Only retry when Deadlock error
-			    $retry++;
+		while ( $retry <= $NUM_RETRIES ){
+			$result = mysql_query($alert_query);
+			if (!$result) {
+				$mysql_error_message = mysql_error();
+				error_log('Error, query failed. Retry '. $retry . ' - ' . $mysql_error_message . " $alert_query");
+				if ( strpos($mysql_error_message, "eadlock") !== false ) {
+					// Only retry when Deadlock error
+					// Add a delay in msec based on an exponential backoff + a random jitter
+					$backoff_delay = $MIN_TIMEOUT * pow(2, $retry) + mt_rand($MIN_TIMEOUT, $MIN_TIMEOUT * 3);
+					$delay = $MIN_TIMEOUT + $backoff_delay;
+					usleep( $delay * 1000 );
+					$retry++;
+				} else {
+					error_log('It has been impossible to clean the event for ' . $query_where . ' because error was: ' . $mysql_error_message);
+					return false;
+				}
 			} else {
-			    error_log('It has been impossible to clean the event for ' . $query_where . ' because error was: ' . $mysql_error_message);
-			    return false;
+				if ( $retry > 1 ) {
+					// Logging second and third tries after Deadlock
+					error_log('Event for ' . $query_where . ' updated after ' . $retry . ' tries');
+				}
+				break;
 			}
-		    } else {
-			if ( $retry > 1 ) {
-			    // Logging second and third tries after Deadlock
-			    error_log('Event for ' . $query_where . ' inserted after ' . $retry . ' tries');
-			}
-			break;
-		    }
 		}
+        if ( $retry > $NUM_RETRIES && !$result){
+            error_log('Error, query failed after ' . $NUM_RETRIES . ' retries' . ' - ' . $mysql_error_message . " $alert_query");
+            return false;
+        }
 		return $result;
 	}
 
