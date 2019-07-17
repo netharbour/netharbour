@@ -396,7 +396,7 @@ CREATE TABLE `Updates` (
   `curDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'the date when the action was taken',
   `archived` tinyint(4) NOT NULL DEFAULT '0' COMMENT 'archived updates',
   UNIQUE KEY `id` (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=4547 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=4547 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1074,7 +1074,7 @@ CREATE TABLE `properties` (
   `value` varchar(1000) NOT NULL COMMENT 'property value',
   `description` varchar(1000) NOT NULL COMMENT 'property description',
   PRIMARY KEY (`name`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='Table for properties';
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Table for properties';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1293,7 +1293,7 @@ CREATE TABLE `user_aes` (
   `password` varchar(1000) DEFAULT NULL,
   `notes` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
