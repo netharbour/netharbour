@@ -10,43 +10,51 @@ class MetricsDB {
 
 	function __construct($base_url='') {
 		// Initializing render default values from config file
-		$ini_array = parse_ini_file("/var/www/cmdb/config/cmdb.conf");
+		$ini_array = parse_ini_file("config/cmdb.conf");
 		if ($base_url != '') {
 			$this->base_url = $base_url;
 		} elseif (array_key_exists("base_metrics_url", $ini_array)){
-			$base_url = $ini_array['base_metrics_url'];
+			$this->base_url = $ini_array['base_metrics_url'];
 		} else {
 			// Default base url for when using default metrics type RRD
-			$base_url = "rrdgraph.php";
+			$this->base_url = "rrdgraph.php";
 		}
 	}
 
-	function factory(){
-		$ini_array = parse_ini_file("/var/www/cmdb/config/cmdb.conf");
-		if (array_key_exists("metrics_type", $ini_array)){
-			// pass for now, this will be the case
+	function factory($metrics_type=''){
+		// find the metric type first
+		$ini_array = parse_ini_file("config/cmdb.conf");
+		if ($metrics_type != '') {
+			; // already defined, let's use it
+		} elseif (array_key_exists("metrics_type", $ini_array)){
+			$metrics_type = $ini_array['metrics_type'];
 		} else {
+			$metrics_type = 'rrd';
+		}
+		// instantiate the correct class depending on which metric type we got
+		if ($metrics_type == 'rrd') {
 			return new MetricsRRD();
-		}		
+		} elseif ($metrics_type == 'graphite') {
+			return new MetricsGraphite();
+		} else {
+			// if metrics_type is defined but is it not one of the supported ones, // return False
+			return False;
+		}
+
 	}
 }
 
 class MetricsRRD extends MetricsDB {
+	public function test() {
+		print ("MetricsRRD\n");
+	}
+}
+
+class MetricsGraphite extends MetricsDB {
+	public function test() {
+		print ("MetricsGraphite\n");
+	}
 
 }
 
 ?>
-
-
-function __construct($base_url='') {
-		// Initializing render default values from config file
-		$ini_array = parse_ini_file("/var/www/cmdb/config/cmdb.conf");
-		if ($base_url != '') {
-			;
-		} elseif (array_key_exists("base_url_statics", $ini_array)){
-			$base_url = $ini_array['base_url_statics'];
-		} else {
-			$base_url = "https://graphite-vip2.sjc.opendns.com/render/";
-		}
-		parent::__construct($base_url);
-	}
