@@ -48,6 +48,21 @@ class MetricsRRD extends MetricsDB {
 	public function test() {
 		print ("MetricsRRD\n");
 	}
+	
+	public function get($metrics_parameters) {
+	    
+	    // who called this get method?
+	    $this->buildLinkA($metrics_parameters);
+    }
+    
+    private function buildLinkA($metrics_parameters) {
+        $link="rrdgraph.php?file=deviceid".$metrics_parameters['deviceID']."_".$metrics_parameters['name'].
+            ".rrd&title=".$metrics_parameters['nameTitle']."---".$metrics_parameters['graph'].
+            "&height=".$metrics_parameters['height']."&width=".$metrics_parameters['width'].
+            "&type=".$metrics_parameters['type']."&legend=0";
+        
+        return $link;
+    }
 }
 
 class MetricsGraphite extends MetricsDB {
