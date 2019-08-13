@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 #
 #  check_if_threshold.pl
 #  This script is used to check if interfaces are close to reaching threshold values

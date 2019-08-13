@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 #
 # check_ifoperstatus.pl - nagios plugin 
 #
