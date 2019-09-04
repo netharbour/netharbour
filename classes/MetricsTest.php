@@ -2,7 +2,7 @@
 
 include_once 'Metrics.php';
 
-$rrd = MetricsDB::factory('rrd');
+$rrd = MetricsDB::factory(); # default is rrd
 $rrd->test();
 
 $graphite = MetricsDB::factory('graphite');
