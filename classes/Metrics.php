@@ -21,20 +21,37 @@ class MetricsDB {
 		}
 	}
 
-	function factory($metrics_type=''){
+	function factory($plugin_type=''){
 		// find the metric type first
-		$ini_array = parse_ini_file("config/cmdb.conf");
-		if ($metrics_type != '') {
-			; // already defined, let's use it
-		} elseif (array_key_exists("metrics_type", $ini_array)){
-			$metrics_type = $ini_array['metrics_type'];
-		} else {
-			$metrics_type = 'rrd';
-		}
+        
+        if ($plugin_type != '') {
+            // not a plugin, an event
+            $ini_array = parse_ini_file("config/cmdb.conf");
+            
+            if (array_key_exists("metrics_type", $ini_array)) {
+                $metrics_type = $ini_array['metrics_type'];
+            } else {
+                $metrics_type = 'rrd';
+            }
+        } else {
+            # get metric_type from Plugin_plugin where plugin_type = $plugin_type
+            
+            # if db result:
+                #use it
+            # else:
+                # default rrd
+        }
+        
+        
+        if ($metric_type != '') {
+            $metric_type = 'rrd';
+        }
+        
+        
 		// instantiate the correct class depending on which metric type we got
-		if ($metrics_type == 'rrd') {
+		if ($plugin_type == 'rrd') {
 			return new MetricsRRD();
-		} elseif ($metrics_type == 'graphite') {
+		} elseif ($plugin_type == 'graphite') {
 			return new MetricsGraphite();
 		} else {
 			// if metrics_type is defined but is it not one of the supported ones, // return False
