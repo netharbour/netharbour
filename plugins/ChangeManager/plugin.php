@@ -4,6 +4,18 @@ include_once 'classes/Form.php';
 include_once 'classes/Device.php';
 include_once 'classes/AAA.php';
 
+
+include_once "classes/Metrics.php";
+
+class MetricsChangeManager extends MetricsDB {
+	public function test() {
+		print ("This is the class for Metrics Change Manager\n");
+	}
+    public function get($args){
+        return "custom link";
+    }
+}
+
 class ChangeManager 
 {
 

@@ -31,10 +31,15 @@ class MetricsDB {
             $cmdb_default_metrics_type = 'rrd';
         }
 
-        if ($plugin_type != '') {
+        if ($plugin_type == '') {
             // not a plugin, an event
             $metrics_type = $cmdb_default_metrics_type;
-        } else {
+		} elseif ($plugin_type == 'graphite'){
+			$metrics_type = 'graphite';
+		} else {
+			# This is done manually
+			$metrics_type = $plugin_type;
+
             # get metric_type from Plugin_plugin where plugin_type = $plugin_type
             
             # if db result:
@@ -50,11 +55,18 @@ class MetricsDB {
 		} elseif ($metrics_type == 'graphite') {
 			return new MetricsGraphite($metrics_base_url);
 		} else {
-			// if metrics_type is defined but is it not one of the supported ones, // return False
-			return False;
+
+			$plugins_metrics_file = "/Users/chradell/github.com/netharbour/plugins/" . $metrics_type . "/plugin.php";
+			include_once $plugins_metrics_file;
+			$class_name = "Metrics" . $metrics_type;
+			return new $class_name($metrics_base_url);
+
 		}
 
 	}
+	public function get($args) {
+		return "empty";
+    }
 }
 
 class MetricsRRD extends MetricsDB {
@@ -62,26 +74,34 @@ class MetricsRRD extends MetricsDB {
 		print ("MetricsRRD\n");
 	}
 	
-	public function get($metrics_parameters) {
-		```
-		Parameters:
-		$metrics_parameters['device_id'] = 
-		$metrics_parameters['name'] = 
- 
-		``` 
-	    
-	    // who called this get method?
-	    $this->buildLinkA($metrics_parameters);
+	public function get($args) {
+	
+		// Parameters:
+		// $args is a dictionary with key and value
+		// who called this get method?
+		
+	    return $this->buildLink($args);
     }
     
-    private function buildLinkA($metrics_parameters) {
-        $link="rrdgraph.php?
-        	file=deviceid".$metrics_parameters['deviceID']."_".$metrics_parameters['name'].".rrd&
-            title=".$metrics_parameters['nameTitle']."---".$metrics_parameters['graph'].
-            "&height=".$metrics_parameters['height']."
-            &width=".$metrics_parameters['width'].
-            "&type=".$metrics_parameters['type']."
-            &legend=0";
+    private function buildLink($args) {
+		$link = $this->base_url . "?";
+
+		foreach($args as $args_key => $args_value){
+			if ($args_key == 'file'){
+				$args_value = "deviceid" . $args_value['device_id'] . "_" . $args_value['name'] . ".rrd";
+			}
+			$link .= "$args_key=$args_value&";
+		}
+		$link .= "legend=0";
+		
+		// This means that file and tile should be elaborated outside the function
+		// "rrdgraph.php?
+        // 	file=deviceid".$metrics_parameters['deviceID']."_".$metrics_parameters['name'].".rrd&
+        //     title=".$metrics_parameters['nameTitle']."---".$metrics_parameters['graph'].
+        //     "&height=".$metrics_parameters['height']."
+        //     &width=".$metrics_parameters['width'].
+        //     "&type=".$metrics_parameters['type']."
+        //     &legend=0";
         
         return $link;
     }
