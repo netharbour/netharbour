@@ -521,7 +521,7 @@ CREATE TABLE `accounting_sources` (
   UNIQUE KEY `file` (`file`),
   KEY `device_id` (`device_id`),
   CONSTRAINT `accounting_sources_ibfk_1` FOREIGN KEY (`device_id`) REFERENCES `Devices` (`device_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1002 DEFAULT CHARSET=latin1 COMMENT='Table for accounting / scu';
+) ENGINE=InnoDB AUTO_INCREMENT=1002 DEFAULT CHARSET=latin1 COLLATE=latin1_general_cs COMMENT='Table for accounting / scu';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
