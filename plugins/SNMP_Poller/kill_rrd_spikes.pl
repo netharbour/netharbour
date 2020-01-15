@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 # This is a  modified version of removespikes.pl found at 
 # http://oss.oetiker.ch/rrdtool/pub/contrib/
