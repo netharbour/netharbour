@@ -119,6 +119,7 @@ sub get_devices_to_check {
 	my $query = "select plugin_SNMPPoller_devices.device_id, Devices.name
 		FROM plugin_SNMPPoller_devices, Devices
 		WHERE plugin_SNMPPoller_devices.enabled = '1'
+               AND Devices.archived = '0'
 		AND plugin_SNMPPoller_devices.device_id = Devices.device_id
 		order by plugin_SNMPPoller_devices.device_id ";
 
